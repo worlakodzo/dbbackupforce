@@ -1898,8 +1898,9 @@ prometheusOperator:
       securityContext: {}
 
     # Use certmanager to generate webhook certs
+
     certManager:
-      enabled: false
+      enabled: true
       # self-signed root certificate
       rootCert:
         duration: ""  # default to be 5y
@@ -1908,6 +1909,7 @@ prometheusOperator:
       # issuerRef:
       #   name: "issuer"
       #   kind: "ClusterIssuer"
+
 
   ## Namespaces to scope the interaction of the Prometheus Operator and the apiserver (allow list).
   ## This is mutually exclusive with denyNamespaces. Setting this to an empty object will disable the configuration
@@ -2473,7 +2475,7 @@ prometheus:
       kubernetes.io/ingress.class: nginx
       kubernetes.io/tls-acme: "true"
       kubernetes.io/component: controller
-      
+
     labels: {}
 
     ## Redirect ingress to an additional defined port on the service
