@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.democrm.serviceName }}
+spec:
+  selector:
+    app: {{ .Values.democrm.metadata.labels.app }}
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: {{ .Values.democrm.serviceType }}

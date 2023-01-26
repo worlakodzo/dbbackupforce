@@ -1,0 +1,297 @@
+{% extends "content_base.html" %}
+{% block title %} Edit Asset | ASSETMGMT {% endblock %}
+{% block main_content %}
+
+<!-- ============================================================== -->
+<!-- Start right Content here -->
+<!-- ============================================================== -->
+<div class="main-content">
+
+    <div class="page-content">
+        <div class="container-fluid">
+
+            <!-- start page title -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                        <h4 class="mb-sm-0">EDIT ASSET</h4>
+
+                        <div class="page-title-right">
+                            <ol class="breadcrumb m-0">
+                                <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
+                                <li class="breadcrumb-item active">Edit Asset</li>
+                            </ol>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- end page title -->
+
+
+
+
+            <div class="row parent">
+                <div class="col-lg-12">
+                    <div class="card ">
+
+
+                        <div id="edit-asset-card-body" data-asset-id="{{asset_id}}" class="card-body">
+
+                            <div id="addproduct-nav-pills-wizard" class="twitter-bs-wizard">
+                                <ul class="twitter-bs-wizard-nav">
+                                    <li class="nav-item">
+                                        <a href="#basic-info" class="nav-link" data-bs-toggle="tab">
+                                        </a>
+                                    </li>
+                                </ul>
+                                <!-- end ul -->
+                                <div class="tab-content twitter-bs-wizard-tab-content">
+                                    <div class="tab-pane" id="basic-info">
+
+                                        <form id="edit-asset-form" data-asset-id="{{asset_id}}" enctype="multipart/form-data">
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="asset_tag">Asset Tag <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="asset_tag" required name="asset_tag" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" required for="asset_serial">Serial <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="asset_serial" required name="asset_serial" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="asset_model">Model <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="asset_model" required name="asset_model" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="asset_status">Status <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <div class="mb-12">
+                                                            <select id="asset_status" required name="asset_status" class="form-control">
+                                                                {% for status in status_list %}
+                                                                    <option value="{{status.name}}">{{status.name}}</option>
+                                                                {%endfor%}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="asset_name">Asset Name <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="asset_name" required name="asset_name" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="company">Company</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="company" name="company" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="supplier">Supplier</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="supplier"  name="supplier" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="order_number">Order Number</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="order_number"  name="order_number" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="purchase_cost">Purchase Cost <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="purchase_cost" required name="purchase_cost" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="purchase_date">Purchase Date <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="purchase_date" required name="purchase_date" type="date" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" required for="warranty">Warranty [in months] <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="warranty" required name="warranty" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="note">Note</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <textarea rows="2" id="note" name="note" class="form-control"></textarea>
+                                                        
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="default_location">Default Location <span style="color: red;">*</span></label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <input id="default_location" required name="default_location" type="text" class="form-control">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row create">
+                                                <div class="col-lg-3">
+                                                    <div class="mb-12">
+                                                        <label class="form-label" for="upload_asset_image">Upload Image</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-8">
+                                                    <div class="mb-12">
+                                                        <img id="display_asset_image" src="" height="150px" alt="User Image">
+                                                        <input id="upload_asset_image" name="upload_asset_image" type="file" class="form-control" accept="image/gif, image/jpeg, image/png, image/jpg, image/svg, image/webp">
+                                                        <p><small>Accepted filetypes are jpg, webp, png, gif, and svg. Max upload size allowed is 3M.</small></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+
+
+                                            <!-- end row -->
+
+                                            <div style="margin-top:30px;" class="col-md-12">
+                                                <button id="btn-submit-form" type="submit" class="btn btn-primary">Submit</button>
+                                            </div>
+
+
+                                            <!-- start error -->
+                                            <div id="error-message-container" style="display: none; margin-top: 15px;" class="row">
+                                                <div class="col-12">
+                                                    <div class="alert alert-danger" role="alert">
+                                                        <p id="error-message"></p>
+                                                    </div>                               
+                                                </div>
+                                            </div>
+                                            <!-- end error -->
+
+
+                                        </form>
+
+
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end row -->
+
+        </div> <!-- container-fluid -->
+    </div>
+    <!-- End Page-content -->
+
+
+</div>
+
+{% endblock %}
+{% block js %} <script src="/static/js/asset.js"></script> {% endblock %}

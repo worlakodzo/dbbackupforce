@@ -1,0 +1,82 @@
+{% extends "content_base.html" %}
+{% block title %} Licenses | ASSETMGMT {% endblock %}
+{% block main_content %}
+
+<!-- ============================================================== -->
+<!-- Start right Content here -->
+<!-- ============================================================== -->
+<div class="main-content">
+
+    <div class="page-content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="dropdown float-end">
+                                <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="mdi mdi-dots-vertical"></i>
+                                </a>
+                            </div>
+
+                            <h4 class="card-title mb-4">Licenses</h4>
+
+                            <div class="table-responsive">
+
+
+                                <table id="licenses-table" class="table table-centered datatable dt-responsive nowrap" data-bs-page-length="5" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>License</th>
+                                            <th>Product Key</th>
+                                            <th>Expiration Date</th>
+                                            <th>License to Email</th>
+                                            <th>License to Name</th>
+                                            <th>Manufacturer</th>
+                                            <th>Category</th>
+                                            <th style="width: 10px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for license in licenses %}
+                                        <tr>
+                                            <td>{{license.software_name}}</td>
+                                            <td>{{license.product_key}}</td>
+                                            <td>{{license.expiration_date}}</td>
+                                            <td>{{license.license_to_name}}</td>
+                                            <td>{{license.license_to_email}}</td>
+                                            <td>{{license.manufacturer}}</td>
+                                            <td>{{license.category_name}}</td>
+                                
+
+                                            <td  style="width: 10px;" id="tooltip-container1">
+                                                <a href="{{url_for('license_edit',license_id=license.license_id)}}"   class="btn me-3 text-primary" data-bs-container="#tooltip-container1" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                                <a href="#" type="button" class="btn text-danger waves-light  delete-license" data-license-id="{{license.license_id}}" data-software-name="{{license.software_name}}"  title="Delete"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+
+
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end row -->
+        </div>
+
+    </div>
+    <!-- End Page-content -->
+
+
+</div>
+
+{% endblock %}
+{% block js %}
+<script src="/static/js/license.js"></script>
+{% endblock %}

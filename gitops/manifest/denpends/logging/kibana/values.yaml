@@ -1,0 +1,5 @@
+
+replicaCount: 1
+service:
+  type: LoadBalancer #ClusterIP
+  port: 5601

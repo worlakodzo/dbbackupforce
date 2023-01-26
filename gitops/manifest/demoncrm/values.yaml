@@ -1,0 +1,115 @@
+mongodb:
+  enabled: true
+  replicaCount: 2
+  architecture: replicaset
+  useStatefulSet: true
+  nameOverride: "mongodb"
+  fullnameOverride: "mongodb"
+  auth:
+    enabled: true
+    usernames: [worlako]
+    databases: [worladb]
+    rootUser: root
+    existingSecret: "worla-general-env-secret"
+
+  arbiter:
+    enabled: false
+
+  serviceMonitor:
+    enabled: false
+    namespace: "des"
+    interval: 30s
+    scrapeTimeout: ""
+    relabelings: []
+    metricRelabelings: []
+    labels: {}
+    selector: {}
+    honorLabels: false
+    jobLabel: ""
+
+  prometheusRule:
+    enabled: false
+    additionalLabels: {}
+    namespace: ""
+    rules: []
+
+  persistence:
+    enabled: true
+    storageClass: "local-path"
+    size: 8Gi
+    mountPath: /bitnami/mongodb
+
+
+democrm:
+  replicaCount: 2
+  serviceName: democrm-svc
+  serviceType: ClusterIP
+  configMap:
+    name: "worla-general-env-configmap"
+    data:
+      log_level: info
+      persistence: "true"
+
+  secrets:
+    name: "worla-general-env-secret"
+
+  metadata:
+    resource:
+      name: "democrm-app"
+    labels:
+      app: "democrm-app"
+
+  selector:
+    matchLabels:
+      app: democrm-app
+
+  container:
+    name: democrm-app
+    image: gcr.io/worlako/nextjs-docker
+    ports:
+      containerPort: 3000
+
+    envFrom:
+      configMapRef:
+        name: worla-general-env-configmap
+      secretRef:
+        name: worla-general-env-secret
+
+    env:
+        name: MONGODB_URI
+        value: "mongodb://$(DB_USERNAME):$(DB_PASSWORD)@$(MONGODB_HOSTNAME).default.svc.cluster.local:27017/$(DB_NAME)"
+    imagePullPolicy: Always
+
+    resources:
+      limits:
+        memory: 512Mi
+        cpu: "1"
+      requests:
+        memory: 256Mi
+        cpu: "0.2"
+    
+  issuer:
+    name: democrm-issuer
+    email: "ydaphney34@gmail.com"
+
+
+
+# grant permission to create file(s) in container
+securityContext:
+  enabled: true
+  fsGroup: 1001
+  runAsUser: 1001
+
+ingress:
+  enabled: true
+  serviceType: ClusterIP
+  className: "nginx"
+  rules:
+    host: assetmgmt.jumpingcrab.com
+    paths:
+      path: "/"
+      pathType: "Prefix"
+  tls:
+    enabled: false
+    secretName: "ydaphney34-gmail-com"
+  

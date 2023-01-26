@@ -1,0 +1,76 @@
+{% extends "content_base.html" %}
+{% block title %} Users | ASSETMGMT {% endblock %}
+    {% block main_content %}
+
+        <!-- ============================================================== -->
+            <!-- Start right Content here -->
+            <!-- ============================================================== -->
+            <div class="main-content">
+
+                <div class="page-content">
+                    <div class="container-fluid">
+
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="dropdown float-end">
+                                            <a href="#" class="dropdown-toggle arrow-none card-drop" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="mdi mdi-dots-vertical"></i>
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-end">
+                                                <a href="javascript:void(0);" class="dropdown-item">Action</a>
+                                            </div>
+                                        </div>
+
+                                        <h4 class="card-title mb-4">Users</h4>
+
+                                        <div class="table-responsive">
+                                            <table id="list-user" class="table table-centered datatable dt-responsive nowrap" data-bs-page-length="5" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Username</th>
+                                                        <th>Role</th>
+                                                        <th>Status</th>
+                                                        <th style="width: 120px;">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for user in users %}
+                                                    <tr>
+
+                                                        <td><a href="javascript: void(0);" class="text-dark fw-bold">{{user.user_id}}</a> </td>
+                                                        <td>
+                                                            {{user.username}}
+                                                        </td>
+                                                        <td>{% if user.is_admin %} Admin {%else%} Staff {%endif%}</td>
+                                                        <td>
+                                                            {% if user.is_active %} Active {%else%} Inactive {%endif%}
+                                                        </td>
+                                                        <td id="tooltip-container1">
+                                                            <a href="{{url_for('update_user', user_id=user.user_id)}}"  class="btn me-3 text-primary" data-bs-container="#tooltip-container1" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                                            <a href="#"  type="button"  class="btn text-danger waves-light delete-user" data-user-id="{{user.user_id}}" data-username="{{user.username}}"  data-bs-container="#tooltip-container1" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end row -->
+                    </div>
+
+                </div>
+                <!-- End Page-content -->
+
+            </div>
+
+    {% endblock %}
+
+    {% block js %}
+    <script src="/static/js/user.js"></script>
+    {% endblock %}

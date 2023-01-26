@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: rando-config-rando
+data:
+    INTERVAL: "{{ .Values.env.interval }}"
+    COUNT: "{{ .Values.env.count }}"
+    MAXNUM: "{{ .Values.env.maxNum }}"
