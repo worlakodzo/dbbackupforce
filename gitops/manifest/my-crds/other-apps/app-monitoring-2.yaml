@@ -4,10 +4,11 @@ metadata:
   name: kube-prometheus-stack-crds
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+  namespace: argocd
 spec:
   destination:
     name: in-cluster
-    namespace: argocd
+    namespace: monitoring
   project: default
   source:
     repoURL: https://github.com/prometheus-community/helm-charts.git
