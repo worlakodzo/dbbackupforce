@@ -1,3 +1,4 @@
+# https://blog.ediri.io/kube-prometheus-stack-and-argocd-23-how-to-remove-a-workaround
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -11,12 +12,12 @@ spec:
     namespace: monitoring
   project: default
   source:
-    repoURL: 'https://prometheus-community.github.io/helm-charts'
-    targetRevision: 34.1.1
+    path: ./gitops/manifest/denpends/monitoring/kube-prometheus-stack
+    repoURL: 'https://github.com/worlakodzo/worlako-develeap-porfolio.git'
+    targetRevision: HEAD
     helm:
       skipCrds: true
-      values: |-
-        #Snip the values
+
         
     chart: kube-prometheus-stack
   syncPolicy:
