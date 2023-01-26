@@ -898,7 +898,7 @@ autoscaling:
 metrics:
   ## @param metrics.enabled Enable exposing Controller statistics
   ##
-  enabled: false
+  enabled: true
   ## Prometheus exporter service parameters
   ##
   service:
@@ -925,7 +925,7 @@ metrics:
     enabled: true
     ## @param metrics.serviceMonitor.namespace Namespace in which Prometheus is running
     ##
-    namespace: prometheus
+    namespace: monitoring
     ## @param metrics.serviceMonitor.jobLabel The name of the label on the target service to use as the job name in prometheus.
     ##
     jobLabel: ""

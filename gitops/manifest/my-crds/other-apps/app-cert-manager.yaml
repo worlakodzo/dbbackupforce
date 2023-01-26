@@ -1,14 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: app-cert-manager
+  name: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
     name: ''
-    namespace: default
+    namespace: cert-manager
     server: 'https://kubernetes.default.svc'
   source:
     path: ./gitops/manifest/denpends/cert-manager

@@ -17,11 +17,6 @@ terraform {
       # version = ">= 2.0.1"
     }
 
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = ">= 1.7.0"
-    }
-
     helm = {
       source = "hashicorp/helm"
       version = "2.8.0"
@@ -29,14 +24,14 @@ terraform {
 
   }
 
-  # backend "s3" {
-  #   bucket         = "worlakoterraformstate"
-  #   key            = "store/terraform.tfstate"
-  #   region         = "us-west-2"
-  #   dynamodb_table = "worlakoterraformstatelock"
-  #   encrypt = true
+  backend "s3" {
+    bucket         = "worlakoterraformstate"
+    key            = "store/terraform.tfstate"
+    region         = "us-west-2"
+    dynamodb_table = "worlakoterraformstatelock"
+    encrypt = true
 
-  # }
+  }
 
 
 }
@@ -51,11 +46,11 @@ data "aws_eks_cluster_auth" "cluster" {
 }
 
 
-# provider "kubernetes" {
-#   cluster_ca_certificate = base64decode(module.eks.kubeconfig-certificate-authority-data)
-#   host                   = data.aws_eks_cluster.cluster.endpoint
-#   token                  = data.aws_eks_cluster_auth.cluster.token
-# }
+provider "kubernetes" {
+  cluster_ca_certificate = base64decode(module.eks.kubeconfig-certificate-authority-data)
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  token                  = data.aws_eks_cluster_auth.cluster.token
+}
 
 provider "helm" {
   kubernetes {
