@@ -46,6 +46,13 @@ data "aws_eks_cluster_auth" "cluster" {
 }
 
 
+data "aws_eks_node_group" "node_group" {
+  depends_on      = [data.aws_eks_cluster.cluster]
+  node_group_name = module.eks.node_group_name
+  cluster_name    = module.eks.cluster_id
+}
+
+
 provider "kubernetes" {
   cluster_ca_certificate = base64decode(module.eks.kubeconfig-certificate-authority-data)
   host                   = data.aws_eks_cluster.cluster.endpoint

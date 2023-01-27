@@ -1,0 +1,3 @@
+# Add this annotations to the files in crds
+# Additional Resourse added by worlako
+argocd.argoproj.io/sync-options: Replace=true
