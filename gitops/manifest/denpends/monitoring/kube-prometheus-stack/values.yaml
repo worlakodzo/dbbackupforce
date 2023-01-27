@@ -2998,7 +2998,7 @@ prometheus:
         scheme: http
         static_configs:
         - targets:
-          - nginx-ingress-controller-metrics.kube-system.svc.cluster.local:80
+          - nginx-ingress-controller-metrics.kube-system.svc.cluster.local:9913
     # - job_name: kube-etcd
     #   kubernetes_sd_configs:
     #     - role: node
