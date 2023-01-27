@@ -1,3 +1,9 @@
 # Add this annotations to the files in crds
 # Additional Resourse added by worlako
 argocd.argoproj.io/sync-options: Replace=true
+
+
+
+
+
+https://blog.ediri.io/kube-prometheus-stack-and-argocd-23-how-to-remove-a-workaround
