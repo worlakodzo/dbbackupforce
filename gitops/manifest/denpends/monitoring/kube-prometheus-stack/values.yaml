@@ -1900,7 +1900,7 @@ prometheusOperator:
     # Use certmanager to generate webhook certs
 
     certManager:
-      enabled: true
+      enabled: false
       # self-signed root certificate
       rootCert:
         duration: ""  # default to be 5y
