@@ -296,17 +296,27 @@ resource "helm_release" "argocd" {
 }
 
 
-resource "helm_release" "nginx_ingress" {
-  name       = "nginx-ingress-controller"
 
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "nginx-ingress-controller"
-  version    = "9.3.26"
 
-  values = [
-    file("${path.module}/manifest/ingress-nginx-values.yaml")
-  ]
 
-  depends_on = [helm_release.argocd]
 
-}
+
+
+
+
+
+
+# resource "helm_release" "nginx_ingress" {
+#   name       = "nginx-ingress-controller"
+
+#   repository = "https://charts.bitnami.com/bitnami"
+#   chart      = "nginx-ingress-controller"
+#   version    = "9.3.26"
+
+#   values = [
+#     file("${path.module}/manifest/ingress-nginx-values.yaml")
+#   ]
+
+#   depends_on = [helm_release.argocd]
+
+# }

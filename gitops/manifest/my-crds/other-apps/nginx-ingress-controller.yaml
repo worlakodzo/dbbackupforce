@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: main-logging
+  name: nginx-ingress-controller
   annotations:
-    argocd.argoproj.io/sync-wave: "6"
+    argocd.argoproj.io/sync-wave: "20"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   namespace: argocd
 spec:
   destination:
     name: in-cluster
-    namespace: logging
+    namespace: kube-system
   project: default
   source:
-    path: ./gitops/manifest/my-crds/logging-apps
+    path: ./gitops/manifest/denpends/nginx-ingress-controller
     repoURL: 'https://github.com/worlakodzo/worlako-develeap-porfolio.git'
     targetRevision: HEAD
   syncPolicy:
