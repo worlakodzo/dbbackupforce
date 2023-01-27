@@ -262,11 +262,16 @@ resource "null_resource" "kubectl" {
   }
 
 
-  # Make local-path storage class default
+  # Add local-path storage class default
   provisioner "local-exec" {
     working_dir = "${path.module}/script/"
-    # interpreter = ["bash", "-Command"]
-    command = "bash update-local-path-storage-class.sh"
+    command = "bash add-storage-class-to-default.sh"
+  }
+
+  # Remove gp2 storage class default
+  provisioner "local-exec" {
+    working_dir = "${path.module}/script/"
+    command = "bash remove-storage-class-from-default.sh"
   }
 
 }
