@@ -1,6 +1,11 @@
 ## Worlako DevOps Portforlio (Develop Bootcamp Ghana 1)
 
 
+### Amazon EKS add-ons
+- kube-proxy                (Enable service networking within your cluster.)
+- CoreDNS                   (Enable service discovery within your cluster.)
+- Amazon VPC CNI            (Enable pod networking within your cluster.)
+- Amazon EBS CSI Driver     (Enable Amazon Elastic Block Storage (EBS) within your cluster)
 
 
 
