@@ -752,7 +752,10 @@ def users():
         # loop over all user object 
         # and format the data
         users = [user for user in list(user_query)]
-        return render_template("users_list.html", users= users)
+        return jsonify({
+            "success": True,
+            "data": users
+        })
 
     # The code below will 
     # execute when error occur
