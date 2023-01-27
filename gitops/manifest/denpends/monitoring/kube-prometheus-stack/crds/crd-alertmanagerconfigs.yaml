@@ -5,6 +5,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
+    # Additional Resourse added by worlako
+    argocd.argoproj.io/sync-options: Replace=true
+
   creationTimestamp: null
   name: alertmanagerconfigs.monitoring.coreos.com
 spec:
@@ -4479,3 +4482,5 @@ spec:
         type: object
     served: true
     storage: true
+
+
