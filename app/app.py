@@ -232,37 +232,10 @@ def user_profile(user_id:str):
     return render_template("users-profile.html", user_id = user_id)
 
 
-@app.route('/user_add', methods=["GET", "POST"])
+@app.route('/user_add')
 def create_user():
     try:
-
-        if request.method == "GET":
-
-            return render_template("users_add.html")
-
-
-        # convert data submited from 
-        # the frontend into json
-        body = request.get_json()
-
-        # Create new user object
-        hash_password = User.get_hashed_password(body['password'])
-        user = User(
-            username= body["username"],
-            password= hash_password,
-            is_active= True,
-            is_admin= bool(int(body["is_admin"]))
-        )
-
-        # insert the new user
-        # into the database
-        user.insert()
-
-        # return json data
-        return jsonify({
-            "success": True
-        }), 201
-    
+        return render_template("users-add.html")    
 
     # The code below will 
     # execute when error occur
