@@ -17,7 +17,6 @@ spec:
     path: ./gitops/manifest/denpends/monitoring/kube-prometheus-stack
     repoURL: 'https://github.com/worlakodzo/worlako-develeap-porfolio.git'
     targetRevision: HEAD
-    chart: kube-prometheus-stack
   syncPolicy:
     automated:
       prune: true 
