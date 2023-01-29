@@ -38,7 +38,6 @@ app = Flask(__name__)
 
 # Create a counter to track the number of requests to the endpoint
 requests_total = Counter('requests_total', 'Total number of requests', ['method', 'endpoint'])
-requests_count = Counter("request_count", "Number of requests to the endpoint")
 
 #request_latency = Summary('request_latency_seconds', 'The latency of the request')
 
@@ -462,7 +461,6 @@ def users():
     try:
 
         if request.method == "GET":
-            requests_count.labels('GET', '/users').inc()
             requests_total.labels('GET', '/users').inc()
 
             # Retrieve all user from database
@@ -477,7 +475,6 @@ def users():
             })
 
         elif request.method == "POST":
-            requests_count.labels('POST', '/users').inc()
             requests_total.labels('POST', '/users').inc()
 
             body = request.get_json()
