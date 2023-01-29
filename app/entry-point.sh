@@ -1,7 +1,17 @@
 #!/bin/sh
 
-cp -r /var/assetmgmt/static/*  /var/data_static
-cp -r /var/assetmgmt/default.conf  /var/data_conf/default.conf
+cp -r /var/uasset/static/*  /var/data_static
+cp -r /var/uasset/default.conf  /var/data_conf/default.conf
+
+# Create media folder to
+# store uploaded images
+mkdir -p /static/vol/media/img/
+# copy default image 
+cp -r /var/uasset/static/vol/media/img/default.png  /static/vol/media/img/default.png
+
+rm -rf /var/uasset
+
+
 
 
 # Run the application
