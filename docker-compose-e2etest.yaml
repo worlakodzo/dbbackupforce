@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  app:
+    image: "${APP_IMAGE}"
+    container_name: "uasset-app"
+    restart: on-failure
+    depends_on:
+       db:
+          condition: service_healthy
+
+    environment:
+      PORTFOLIO_MONGO_DB_URI:  "mongodb://${DB_USERNAME}:${DB_PASSWORD}@db:27017/develeap_portfolio"
+      PORTFOLIO_MONGO_DB_HOST: db
+      PORTFOLIO_MONGO_DB_PORT: 27017
+      PORTFOLIO_MONGO_DB_NAME: "develeap_portfolio"
+    volumes:
+      - uasset_static:/var/data_static
+      - uasset_proxy_conf:/var/data_conf
+    networks:
+      - endtoendtest_net
+
+  db:
+    container_name: mongodb
+    image: bitnami/mongodb:latest
+    environment:
+      MONGODB_USERNAME: "${DB_USERNAME}"
+      MONGODB_PASSWORD: "${DB_PASSWORD}"
+      MONGODB_DATABASE: "${DB_NAME}"
+      MONGODB_ROOT_USERNAME: "${DB_ROOT_USERNAME}"
+      MONGODB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+
+    healthcheck:
+      test: ["CMD",  "mongosh", "--eval", "db.runCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - endtoendtest_net
+      - endtoendtest_front_net
+
+  nginx:
+    image: nginx:1.23
+    container_name: uasset-proxy
+    restart: on-failure
+    ports:
+      - "8085:80"
+    volumes:
+      - uasset_static:/var/uasset/static
+      - uasset_proxy_conf:/etc/nginx/conf.d
+    depends_on:
+        app:
+          condition: service_healthy
+    networks:
+      - endtoendtest_front_net
+
+
+volumes:
+  uasset_static:
+  uasset_proxy_conf:
+  mongodb_data_container:
+
+networks:
+  endtoendtest_net:
+  endtoendtest_front_net:
