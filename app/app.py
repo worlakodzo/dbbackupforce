@@ -6,13 +6,13 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
 import logging
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
+from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
+
 
 
 from models import (
     create_db,
     Asset,
-    License,
     User,
 
     STATUS_LIST,
@@ -24,19 +24,45 @@ error_msg = ""
 
 
 
-UPLOAD_FOLDER =  os.path.join('vol', 'img')
+UPLOAD_FOLDER =  os.path.join('static', 'vol/media/img')
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # # Configure the logging
 # logging.basicConfig(filename='app.log', level=logging.INFO)
 
-# # Create a Prometheus counter for the /actor/search endpoint
-# counter = Counter(
-#     'actor_search_counter', 'Number of times the /actor/search endpoint has been accessed')
 
 
 # create flask application
 app = Flask(__name__)
+
+
+# Create a counter to track the number of requests to the endpoint
+requests_total = Counter('requests_total', 'Total number of requests', ['method', 'endpoint'])
+requests_count = Counter("request_count", "Number of requests to the endpoint")
+
+#request_latency = Summary('request_latency_seconds', 'The latency of the request')
+
+# Create a summary to track the request processing time
+request_process_time = Summary("request_process_time_seconds", "Request processing time in seconds")
+
+# Create a histogram to track the request latencies
+request_latency = Histogram("request_latency_seconds", "Request latency in seconds")
+
+# Create summary metric for response time of endpoint requests
+response_time = Summary("request_response_time_seconds", "Time spent serving this endpoint")
+
+# Create a counter metric for number of requests to endpoint
+request_counter = Counter("endpoint_requests", "Number of requests to this endpoint")
+
+# Create histogram metric for request payload size
+request_payload = Histogram("request_payload_size_bytes", "Payload size of the request in bytes")
+
+# Create gauge metric for available disk space
+disk_space = Gauge("disk_space_free_bytes", "Free disk space in bytes")
+
+# Create info metric with app version and deployment environment
+app_info = Info("app_info", "Information about the app")
+
 
 
 # configure the file upload folder
@@ -58,11 +84,14 @@ except:
     pass
 
 
+
 @app.route('/health')
 def health():
     app_msg ="Runing"
     db_server_msg = "Runing" 
     try:
+        requests_total.labels('GET', '/health').inc()
+
         # Check database server connection
         db, client = Database.get_database_mongo()
         collections = db.list_collections()
@@ -426,11 +455,15 @@ def asset_edit(asset_id):
 ################## BEGIN API ###################################
 
 @app.route('/users', methods=["GET", "POST"])
+@request_latency.time()
+@request_process_time.time()
 def users():
     status_code = 500
     try:
 
         if request.method == "GET":
+            requests_count.labels('GET', '/users').inc()
+            requests_total.labels('GET', '/users').inc()
 
             # Retrieve all user from database
             user_query = db.users.find({})
@@ -444,6 +477,9 @@ def users():
             })
 
         elif request.method == "POST":
+            requests_count.labels('POST', '/users').inc()
+            requests_total.labels('POST', '/users').inc()
+
             body = request.get_json()
             print(body)
             new_user = User(**body)
@@ -614,6 +650,25 @@ def update_user_setting(body, user_query):
 
 
 
+# Add a gauge metric for available disk space
+@app.route("/diskspace")
+def disk_space_handler():
+    # Set the gauge metric value
+    disk_space.set(1024 * 1024 * 1024)
+    return "Disk Space: 1 GB"
+
+# Add a info metric with app version and deployment environment
+app_info.info({"version": "1.0.1", "environment": "development"})
+
+# # Expose the metrics on /metrics endpoint
+# app.add_url_rule("/metrics", "metrics", MetricsHandler.as_view(registry=app.registry))
+@app.route('/metrics')
+def metrics():
+    return generate_latest()
+
+
+
+
 """
 Error handle
 """
@@ -652,6 +707,6 @@ def unauthorized(error):
     }), 401
 
 
-# assetmgmt
+# UASSET 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
