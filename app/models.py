@@ -86,14 +86,14 @@ db, _ = Database.get_database_mongo()
 def create_db():
 
     # retrieve user
-    user = db.users.find_one({"username":"admin"})
+    user = db.users.find_one({"username":"uasset"})
 
     # create default if it
     # does not exist
     if not user:
         # Create a default user
         user = User(
-            username= "admin",
+            username= "uasset",
             password= "admin",
             full_name= "Admin",
             is_active= True,
@@ -113,16 +113,14 @@ class User():
         username,
         full_name,
         password,
-        is_active,
-        is_admin,
+        phone,
+        email,
         photo="default.png",
         photo_storage_type="local",
         _id= "",
         about= "",
         job_title= "",
         address= "",
-        phone= "",
-        email= "",
         twitter_link= "",
         facebook_link= "",
         linkedin_link= "",
@@ -130,6 +128,8 @@ class User():
         new_assert_added= False,
         assert_expiring= False,
         security_notify= False,
+        is_active= True,
+        is_admin= False,
         ):
 
         self.username = username
@@ -158,7 +158,7 @@ class User():
     def insert(self):
 
         # create new user
-        db.users.insert_one({
+        result = db.users.insert_one({
             "_id": str(uuid.uuid4()),
             "username": self.username,
             "password": User.get_hashed_password(self.password),
@@ -187,7 +187,7 @@ class User():
             }
         })
 
-        return True
+        return result
 
 
     def update(self):
@@ -217,6 +217,7 @@ class User():
                 "linkedin": self.linkedin_link
             }
         }
+
         db.users.update_one({"_id": self._id}, {"$set": new_value})
         return True
 

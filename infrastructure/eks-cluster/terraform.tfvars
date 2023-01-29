@@ -4,9 +4,9 @@ endpoint_public_access  = true
 endpoint_private_access = true
 public_access_cidrs     = ["0.0.0.0/0"]
 node_group_name         = "worlako-portfolio-cluster-node-group"
-scaling_desired_size    = 4
-scaling_max_size        = 4
-scaling_min_size        = 2
+scaling_desired_size    = 5
+scaling_max_size        = 5
+scaling_min_size        = 3
 instance_types          = ["t3.medium"]
 key_pair                = "worlako-portfolio-eks-key"
 

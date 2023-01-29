@@ -15,7 +15,15 @@
   </div><!-- End Page Title -->
 
   <section class="section">
-    <div class="row">
+
+    <!--BEGIN spinner-->
+
+    <div id="spinner-content" class="col-lg-12" style="margin-top: 70px;">
+    </div>
+
+    <!--END spinner-->
+
+    <div id="user-list-container" class="row">
       <div class="col-lg-12">
 
         <div class="card">
@@ -36,20 +44,7 @@
                   <th style="text-align: right;" scope="col">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">1</th>
-                  <td>Brandon Jacob</td>
-                  <td>Brandon Jacob</td>
-                  <td>Designer</td>
-                  <td>28</td>
-                  <td style="float: right">
-                    <div class="btn-group" role="group" aria-label="Basic example">
-                        <a type="button" class="btn btn-primary" href="{{url_for('user_profile', user_id=session['user']['_id'] )}}"><i class="bi bi-eye-fill"></i></a>
-                        <a type="button" class="btn btn-danger"><i class="bx bxs-trash-alt"></i></a>
-                    </div>
-                  </td>
-                </tr>
+              <tbody id="user-list-table-body">
 
 
               </tbody>
@@ -61,7 +56,33 @@
       </div>
 
     </div>
+
+    <!--BEGIN delete user modal-->
+    <div class="modal fade" id="delete-user-modal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm delete</h5>
+            <button type="button" id="delete-user-modal-close" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div id="delete-user-content" class="modal-body">
+          
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" id="confirm-delete" class="btn btn-danger">Delete</button>
+          </div>
+
+          <p style="color: red;" id="delete-user-error-notify"></p>
+        </div>
+      </div>
+    </div><!--END delete user modal-->
+
+
   </section>
 
 
+{% endblock %}
+{% block js %}
+<script src="{{url_for('static', filename='js/users.js')}}"></script>
 {% endblock %}

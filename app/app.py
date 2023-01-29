@@ -6,13 +6,15 @@ from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
 import logging
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, Counter
+from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
+
+# https://blog.viktoradam.net/2020/05/11/prometheus-flask-exporter/
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 from models import (
     create_db,
     Asset,
-    License,
     User,
 
     STATUS_LIST,
@@ -20,20 +22,52 @@ from models import (
     )
 
 
+error_msg = ""
 
-UPLOAD_FOLDER =  os.path.join('static', 'assetmgmt/images')
+
+
+UPLOAD_FOLDER =  os.path.join('static', 'vol/media/img')
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # # Configure the logging
 # logging.basicConfig(filename='app.log', level=logging.INFO)
 
-# # Create a Prometheus counter for the /actor/search endpoint
-# counter = Counter(
-#     'actor_search_counter', 'Number of times the /actor/search endpoint has been accessed')
 
 
 # create flask application
 app = Flask(__name__)
+
+metrics = PrometheusMetrics(app)
+
+# static information as metric
+metrics.info('app_info', 'Application info', version='1.0.3')
+
+
+
+# Create a counter to track the number of requests to the endpoint
+requests_total = Counter('requests_total', 'Total number of requests', ['method', 'endpoint'])
+
+# Create a summary to track the request processing time
+request_process_time = Summary("request_process_time_seconds", "Request processing time in seconds")
+
+# Create a histogram to track the request latencies
+request_latency = Histogram("request_latency_seconds", "Request latency in seconds")
+
+# Create summary metric for response time of endpoint requests
+response_time = Summary("request_response_time_seconds", "Time spent serving this endpoint")
+
+# Create a counter metric for number of requests to endpoint
+request_counter = Counter("endpoint_requests", "Number of requests to this endpoint")
+
+# Create histogram metric for request payload size
+request_payload = Histogram("request_payload_size_bytes", "Payload size of the request in bytes")
+
+# Create gauge metric for available disk space
+disk_space = Gauge("disk_space_free_bytes", "Free disk space in bytes")
+
+# # Create info metric with app version and deployment environment
+# app_info = Info("app_info", "Information about the app")
+
 
 
 # configure the file upload folder
@@ -55,11 +89,14 @@ except:
     pass
 
 
+
 @app.route('/health')
 def health():
     app_msg ="Runing"
     db_server_msg = "Runing" 
     try:
+        requests_total.labels('GET', '/health').inc()
+
         # Check database server connection
         db, client = Database.get_database_mongo()
         collections = db.list_collections()
@@ -125,12 +162,10 @@ def build_file_name(file_extension, prefix):
     new_filename = new_filename.replace("-", "_")
     return new_filename
 
-
-
 @app.route('/display/<filename>')
 def display_image(filename):
-	#print('display_image filename: ' + filename)
 	return redirect(url_for('static', filename='uploads/' + filename), code=301)
+
 
 # Decorators
 def login_required(f):
@@ -144,13 +179,10 @@ def login_required(f):
     return wrap
 
 
-
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login')
-
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -218,24 +250,24 @@ def dashboard():
         total_asset_count = total_asset_count,
         total_license_count = total_license_count,
         number_of_license_due_expiry_count = number_of_license_due_expiry_count,
-        total_asset_in_repair_count = total_asset_in_repair_count
+        total_asset_in_repair_count = total_asset_in_repair_count,
+        is_dashboard=True
         )
 
 
 
 @app.route('/user-list')
 def users_list():
-    return render_template("user-list.html")
+    return render_template("user-list.html", is_user=True)
 
 @app.route('/user-profile/<string:user_id>')
 def user_profile(user_id:str):
-    return render_template("users-profile.html", user_id = user_id)
-
+    return render_template("users-profile.html", user_id = user_id, is_user=True)
 
 @app.route('/user_add')
 def create_user():
     try:
-        return render_template("users-add.html")    
+        return render_template("users-add.html", is_user=True)    
 
     # The code below will 
     # execute when error occur
@@ -246,104 +278,6 @@ def create_user():
         print(str(err))
 
         # call to error handler
-        abort(500)
-
-
-@app.route('/user_edit/<int:user_id>', methods=["GET", "POST"])
-def update_user(user_id):
-    try:
-        
-        if request.method == "GET":
-            user = User.query.get(user_id)
-            return render_template("user_edit.html", user=user.format())
-
-
-
-        # convert data submited from 
-        # the frontend into json
-        body = request.get_json()
-
-        # Retrive user from database
-        user = User.query.get(user_id)
-
-        # Edit user data
-        user.is_active = bool(int(body['is_active']))
-        user.is_admin = bool(int(body['is_admin']))
-
-        # commit changes to database
-        user.update()
-
-        # return json data
-        return jsonify({
-            "success": True
-        })
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route('/change_password/<int:user_id>', methods=["GET", "POST"])
-def change_password(user_id):
-    try:
-
-        if request.method == "GET":
-            user = User.query.get(user_id)
-            return render_template("change_password.html", user=user.format())
-
-
-        # convert data submited from 
-        # the frontend into json
-        body = request.get_json()
-
-        # Retrive user from database
-        user = User.query.get(user_id)
-
-        # Edit password
-        hash_password = User.get_hashed_password(body['password'])
-        user.password = hash_password
-
-        # commit changes to database
-        user.update()
-
-        # return json data
-        return jsonify({
-            "success": True
-        })
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-
-@app.route("/user_delete/<int:user_id>", methods=["GET"])
-def delete_user(user_id):
-    try:
-        # get user
-        user = User.query.get(user_id)
-        # delete user
-        user.delete()
-        
-        return jsonify({
-            "success": True
-        })
-    except Exception as e:
-        print(str(e))
         abort(500)
 
 
@@ -379,8 +313,6 @@ def asset_list():
 
         # call to error handler
         abort(500)
-
-
 
 @app.route("/asset_add", methods=["GET", "POST"])
 def asset_add():
@@ -453,7 +385,6 @@ def asset_add():
         # call to error handler
         abort(500)
 
-
 @app.route("/asset_edit/<int:asset_id>", methods=["GET", "POST"])
 def asset_edit(asset_id):
     try:
@@ -525,237 +456,44 @@ def asset_edit(asset_id):
 
 
 
-@app.route('/asset_load/<int:asset_id>')
-def load_asset(asset_id):
-    try:
-        asset = Asset.query.get(asset_id)
-        data = asset.format()
-
-        # get link of asset image
-        photo_link = os.path.join(app.config['UPLOAD_FOLDER'], asset.photo)
-        data['photo_link'] = f"/{photo_link}"
-        
-        return jsonify({
-            "asset": data
-        })
-    except Exception as e:
-        print(str(e))
-        abort(500)
-
-
-
-@app.route("/asset_delete/<int:asset_id>", methods=["GET"])
-def asset_delete(asset_id):
-    try:
-        # get asset
-        asset = Asset.query.get(asset_id)
-        # delete asset
-        asset.delete()
-        
-        return jsonify({
-            "success": True
-        })
-    except Exception as e:
-        print(str(e))
-        abort(500)
-
-
-@app.route("/licenses", methods=["GET"])
-def license_list():
-    try:
-        # Retrieve all license from database
-        license_query = License.query.all()
-        licenses = []
-
-        # loop over all license object 
-        # and format the data
-        for license in license_query:
-            # add license to list of licenses
-            licenses.append(license.format())
-
-        return render_template("license_list.html", licenses= licenses)
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-
-
-
-@app.route("/license_add", methods=["GET", "POST"])
-def license_add():
-    try:
-
-        if request.method == "GET":
-            return render_template(
-                "license_add.html",
-                category_list=CATEGORY_LIST
-                )
-
-
-        # get data submited from 
-        # the frontend as dictionary object
-        body = request.form
-
-        # Create new license object
-        license = License(
-            software_name= body["software_name"],
-            category_name= body["category_name"],
-            product_key= body["product_key"],
-            seats= body["seats"],
-            company= body["company"],
-            manufacturer= body["manufacturer"],
-            license_to_name= body["license_to_name"],
-            license_to_email= body["license_to_email"],
-            supplier= body["supplier"],
-            order_number= body["order_number"],
-            purchase_cost= body["purchase_cost"],
-            purchase_date= datetime.fromisoformat(body["purchase_date"]),
-            expiration_date= datetime.fromisoformat(body["expiration_date"]),
-            termination_date= datetime.fromisoformat(body["termination_date"]) if body["termination_date"] else None,
-            note= body["note"],
-            purchase_order_number= body["purchase_order_number"],
-            default_location= body["default_location"],
-            reassignable= False,
-            maintained= False
-            )
-
-        # insert the new license
-        # into the database
-        license.insert()
-
-        # return json data
-        return jsonify({
-            "success": True
-        }), 201
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-
-
-@app.route("/license_edit/<int:license_id>", methods=["GET", "POST"])
-def license_edit(license_id):
-    try:
-
-        if request.method == "GET":
-            return render_template(
-                "license_edit.html",
-                license_id= license_id,
-                category_list=CATEGORY_LIST
-                )
-
-
-        # get data submited from 
-        # the frontend as dictionary object
-        body = request.form
-
-        # get license 
-        license = License.query.get(license_id)
-
-        license.software_name= body["software_name"]
-        license.category_name= body["category_name"]
-        license.product_key= body["product_key"]
-        license.seats= body["seats"]
-        license.company= body["company"]
-        license.manufacturer= body["manufacturer"]
-        license.license_to_name= body["license_to_name"]
-        license.license_to_email= body["license_to_email"]
-        license.supplier= body["supplier"]
-        license.order_number= body["order_number"]
-        license.purchase_cost= body["purchase_cost"]
-        license.purchase_date= datetime.fromisoformat(body["purchase_date"])
-        license.expiration_date= datetime.fromisoformat(body["expiration_date"])
-        license.termination_date= datetime.fromisoformat(body["termination_date"]) if body["termination_date"] else None
-        license.note= body["note"]
-        license.purchase_order_number= body["purchase_order_number"]
-        license.default_location= body["default_location"]
-            
-
-        # commit license
-        # into the database
-        license.insert()
-
-        # return json data
-        return jsonify({
-            "success": True
-        }), 200
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route('/license_load/<int:license_id>')
-def load_license(license_id):
-    try:
-        # get license
-        license = License.query.get(license_id)
-        
-        return jsonify({
-            "license": license.format()
-        })
-    except Exception as e:
-        print(str(e))
-        abort(500)
-
-
-@app.route("/license_delete/<int:license_id>", methods=["GET"])
-def license_delete(license_id):
-    try:
-        # get license
-        license = License.query.get(license_id)
-        # delete license
-        license.delete()
-        
-        return jsonify({
-            "success": True
-        })
-    except Exception as e:
-        print(str(e))
-        abort(500)
-
-
-
 
 ################## BEGIN API ###################################
 
 @app.route('/users', methods=["GET", "POST"])
+@request_latency.time()
+@request_process_time.time()
 def users():
+    status_code = 500
     try:
-        # Retrieve all user from database
-        user_query = db.users.find({})
 
-        # loop over all user object 
-        # and format the data
-        users = [user for user in list(user_query)]
-        return jsonify({
-            "success": True,
-            "data": users
-        })
+        if request.method == "GET":
+            requests_total.labels('GET', '/users').inc()
+
+            # Retrieve all user from database
+            user_query = db.users.find({})
+
+            # loop over all user object 
+            # and format the data
+            users = [user for user in list(user_query)]
+            return jsonify({
+                "success": True,
+                "data": users
+            })
+
+        elif request.method == "POST":
+            requests_total.labels('POST', '/users').inc()
+
+            body = request.get_json()
+            print(body)
+            new_user = User(**body)
+
+            result = new_user.insert()
+
+            return jsonify({
+                "success": True,
+                "_id": result.inserted_id
+            })
+
 
     # The code below will 
     # execute when error occur
@@ -766,40 +504,173 @@ def users():
         print(str(err))
 
         # call to error handler
-        abort(500)
+        abort(status_code)
 
 
-@app.route('/users', methods=["GET", "PUT", "PATCH", "DELETE"])
-def user_detail():
+@app.route('/users/<string:id>', methods=["GET", "PUT", "PATCH", "DELETE"])
+def user_detail(id:str):
+    '''
+        Retrieve, update, and delete user profile
+    '''
+    status_code = 500
     try:
-        # Retrieve all user from database
-        user_query = db.users.find({})
 
-        # loop over all user object 
-        # and format the data
-        users = [user for user in list(user_query)]
-        return render_template("users_list.html", users= users)
+        if request.method == "GET":
+
+            # Retrieve user from database
+            user_query = db.users.find_one({"_id": id})
+
+            # get link of user image
+            photo_link = os.path.join(app.config['UPLOAD_FOLDER'], user_query['photo']['path'])
+            user_query['photo_link'] = f"/{photo_link}"
+
+            return jsonify({
+                "success": True,
+                "data": user_query
+            }), 200
+
+
+        elif request.method == "PUT":
+
+            # Retrieve user from database
+            user_query = db.users.find_one({"_id": id})
+            body = request.get_json()
+
+            if body["action_type"] == "update-user-data":
+
+                return jsonify({
+                    "success": True,
+                    "data": update_user_data(body, user_query)
+                }), 200
+
+
+            elif body["action_type"] == "update-user-setting":
+
+                return jsonify({
+                    "success": True,
+                    "data": update_user_setting(body, user_query)
+                }), 200
+
+
+
+
+        elif request.method == "PATCH":
+            # Change password
+
+            # Retrieve user from database
+            user_query = db.users.find_one({"_id": id})
+            body = request.get_json()
+
+            reset_password(body, user_query)
+            return jsonify({
+                "success": True,
+                "_id": id
+            }), 200
+
+
+
+        elif request.method == "DELETE":
+            # delete user profile 
+            user_query = db.users.delete_one({"_id": id})
+
+            return jsonify({
+                "success": True,
+                "_id": id
+            }), 204            
+            
+
+
 
     # The code below will 
     # execute when error occur
     # in the try block
     except Exception as err:
+        error_msg = str(err)
         # print out err to 
         # console for debug purpose
         print(str(err))
 
         # call to error handler
-        abort(500)
+        abort(status_code)
+
+
+def reset_password(body, user_query):
+    new_value = {
+        "password": User.get_hashed_password(body["password"]),
+    }
+    db.users.update_one({"_id": user_query["_id"]}, {"$set": new_value})
+
+
+
+def update_user_data(body, user_query):
+
+    new_value = {
+        "full_name": body["full_name"],
+        "about": body["about"],
+        "job_title": body["job_title"],
+        "address": body["address"],
+        "phone": body["phone"],
+        "email": body["email"],
+        "photo": {
+            "storage_type": user_query['photo']["storage_type"],
+            "path": user_query["photo"]['path']
+        },
+        "social_link": {
+            "twitter": body["twitter_link"],
+            "facebook": body["facebook_link"],
+            "linkedin": body["linkedin_link"]
+        }
+    }
+
+    db.users.update_one({"_id": user_query["_id"]}, {"$set": new_value})
+
+    # Get new record and return new record
+    return db.users.find_one({"_id": user_query["_id"]})
+
+def update_user_setting(body, user_query):
+
+    new_value = {
+        "email_notification": {
+            "changes_made_to_account": body["changes_made_to_account"],
+            "new_assert_added": body["new_assert_added"],
+            "assert_expiring": body["assert_expiring"],
+            "security_notify": body["security_notify"]
+        }
+    }
+
+    db.users.update_one({"_id": user_query["_id"]}, {"$set": new_value})
+
+    # Get new record and return new record
+    return db.users.find_one({"_id": user_query["_id"]})
 
 
 
 
-
-
-
-
+# user = db.users.find_one({"username":"admin"})
+# reset_password({"password": "admin"}, user)
 ################  END API ##########################################
 
+
+
+
+# Add a gauge metric for available disk space
+@app.route("/diskspace")
+def disk_space_handler():
+    # Set the gauge metric value
+    disk_space.set(1024 * 1024 * 1024)
+    return "Disk Space: 1 GB"
+
+
+# # Add a info metric with app version and deployment environment
+# app_info.info({"version": "1.0.1", "environment": "development"})
+
+
+@app.route('/api/metrics')
+def metrics_api():
+    return generate_latest()
+
+
+metrics.start_http_server(5001)
 
 
 
@@ -829,7 +700,7 @@ def resource_not_found(error):
     return jsonify({
         "success": False,
         "error": 404,
-        "message": "Resource Not Found"
+        "message": f"Resource Not Found {error_msg}"
     }), 404
 
 @app.errorhandler(401)
@@ -841,6 +712,6 @@ def unauthorized(error):
     }), 401
 
 
-# assetmgmt
+# UASSET 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
