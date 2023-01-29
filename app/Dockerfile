@@ -5,7 +5,7 @@
 FROM python:3.8-alpine as build
 RUN apk update && apk add build-base
 
-RUN mkdir -p /var/assetmgmt/static
+RUN mkdir -p /var/uasset/static
 WORKDIR /code
 
 COPY requirements.txt /code
@@ -13,8 +13,8 @@ COPY requirements.txt /code
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 
-COPY static /var/assetmgmt/static
-COPY entry-point.sh default.conf /var/assetmgmt/
+COPY static /var/uasset/static
+COPY entry-point.sh default.conf /var/uasset/
 COPY . /code/
 
 # Remove static files 
@@ -25,15 +25,15 @@ RUN rm -rf static
 # Production enviroment
 FROM python:3.8-alpine
 
-RUN mkdir -p /var/assetmgmt/static
+RUN mkdir -p /var/uasset/static
 WORKDIR /code
 
 COPY --from=build /code/ /code
 COPY --from=build /usr/local/lib/python3.8 /usr/local/lib/python3.8
 COPY --from=build /usr/local/bin/gunicorn /usr/local/bin/gunicorn
-COPY --from=build /var/assetmgmt/entry-point.sh  /usr/local/bin/entry-point.sh
-COPY --from=build /var/assetmgmt/default.conf  /var/assetmgmt/default.conf
-COPY --from=build /var/assetmgmt/static/  /var/assetmgmt/static
+COPY --from=build /var/uasset/entry-point.sh  /usr/local/bin/entry-point.sh
+COPY --from=build /var/uasset/default.conf  /var/uasset/default.conf
+COPY --from=build /var/uasset/static/  /var/uasset/static
 
 EXPOSE 5000
 RUN chmod 755  /usr/local/bin/entry-point.sh
