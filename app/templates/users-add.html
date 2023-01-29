@@ -31,87 +31,64 @@
                 <div class="pt-3">
 
                   <!-- Profile Edit Form -->
-                  <form method="post" action="#" enctype="multipart/form-data">
-                    <div class="row mb-3">
-                      <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Profile Image</label>
-                      <div class="col-md-8 col-lg-9">
-                        <img src="assets/img/profile-img.jpg" alt="Profile">
-                        <div class="pt-2">
-                          <a href="#" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="bi bi-upload"></i></a>
-                          <a href="#" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="bi bi-trash"></i></a>
-                        </div>
-                      </div>
-                    </div>
+                  <form method="post" id="user-data-form" data-url="/users" data-action-type="POST" action="#" enctype="multipart/form-data">
 
-                    <br/>
 
                     <div class="row mb-3">
-                      <label for="full-name" class="col-md-4 col-lg-3 col-form-label">Full Name</label>
+                      <label for="full-name" class="col-md-4 col-lg-3 col-form-label">Username <span style="color: red;">*</span></label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="full_name" type="text" class="form-control" id="full-name" value="Kevin Anderson">
+                        <input name="username" type="text" class="form-control" id="username" value="">
                       </div>
-                    </div>
+
+                      <p id="username-error" style="color: red; display: none;">Username field required</p>
+                    </div>                    
 
                     <div class="row mb-3">
-                      <label for="about" class="col-md-4 col-lg-3 col-form-label">About</label>
+                      <label for="full-name" class="col-md-4 col-lg-3 col-form-label">Full Name <span style="color: red;">*</span></label>
                       <div class="col-md-8 col-lg-9">
-                        <textarea name="about" class="form-control" id="about" style="height: 100px">Sunt est soluta temporibus accusantium neque nam maiores cumque temporibus. Tempora libero non est unde veniam est qui dolor. Ut sunt iure rerum quae quisquam autem eveniet perspiciatis odit. Fuga sequi sed ea saepe at unde.</textarea>
+                        <input name="full_name" type="text" class="form-control" id="full-name" value="">
                       </div>
+                      <p id="full-name-error" style="color: red; display: none;">Full name field required</p>
                     </div>
 
 
                     <div class="row mb-3">
-                      <label for="job-title" class="col-md-4 col-lg-3 col-form-label">Job</label>
+                      <label for="phone" class="col-md-4 col-lg-3 col-form-label">Phone <span style="color: red;">*</span></label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="job_title" type="text" class="form-control" id="job-title" value="Web Designer">
+                        <input name="phone" type="text" class="form-control" id="phone" value="">
                       </div>
-                    </div>
-
-
-                    <div class="row mb-3">
-                      <label for="Address" class="col-md-4 col-lg-3 col-form-label">Address</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="address" type="text" class="form-control" id="Address" value="A108 Adam Street, New York, NY 535022">
-                      </div>
+                      <p id="phone-error" style="color: red; display: none;">Phone field required</p>
                     </div>
 
                     <div class="row mb-3">
-                      <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
+                      <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email <span style="color: red;">*</span></label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="phone" type="text" class="form-control" id="Phone" value="">
+                        <input name="email" type="email" class="form-control" id="email" value="">
                       </div>
+                      <p id="email-error" style="color: red; display: none;">Email field required</p>
                     </div>
 
                     <div class="row mb-3">
-                      <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
+                      <label for="password" class="col-md-4 col-lg-3 col-form-label">Password <span style="color: red;">*</span></label>
                       <div class="col-md-8 col-lg-9">
-                        <input name="email" type="email" class="form-control" id="Email" value="">
+                        <input name="password" type="password" class="form-control" id="password" value="">
                       </div>
+                      <p id="password-error" style="color: red; display: none;">Password field required</p>
                     </div>
 
-                    <div class="row mb-3">
-                      <label for="twitter-link" class="col-md-4 col-lg-3 col-form-label">Twitter link</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="twitter" type="text" class="form-control" id="twitter-link" value="">
-                      </div>
+
+                    <div style="margin-bottom: 25px;" class="text-center">
+                      <button type="submit" id="btn-create-user" class="btn btn-primary">Create User</button>
                     </div>
 
-                    <div class="row mb-3">
-                      <label for="facebook-link" class="col-md-4 col-lg-3 col-form-label">Facebook link</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="facebook" type="text" class="form-control" id="facebook-link" value="">
-                      </div>
+                    <div id="save-success-content-container" style="display: none;"  class="col-lg-6 alert alert-success bg-success text-light border-0 alert-dismissible fade show" role="alert">
+                      User successfully created.
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-
-                    <div class="row mb-3">
-                      <label for="linkedin-link" class="col-md-4 col-lg-3 col-form-label">Linkedin link</label>
-                      <div class="col-md-8 col-lg-9">
-                        <input name="linkedin" type="text" class="form-control" id="linkedin-link" value="">
-                      </div>
-                    </div>
-
-                    <div class="text-center">
-                      <button type="submit" class="btn btn-primary">Save Changes</button>
+      
+                    <div id="save-error-content-container" style="display: none;" class="col-lg-6 alert alert-danger bg-danger text-light border-0 alert-dismissible fade show" role="alert">
+                      <p id="save-error-content"></p>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                   </form><!-- End Profile Edit Form -->
 
@@ -133,5 +110,5 @@
 {% endblock %}
 
 {% block js %}
-
+<script src="{{url_for('static', filename='js/users.js')}}"></script>
 {% endblock %}
