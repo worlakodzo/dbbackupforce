@@ -8,6 +8,8 @@ from  database import Database
 import logging
 from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
 
+# https://blog.viktoradam.net/2020/05/11/prometheus-flask-exporter/
+from prometheus_flask_exporter import PrometheusMetrics
 
 
 from models import (
@@ -35,11 +37,15 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 # create flask application
 app = Flask(__name__)
 
+metrics = PrometheusMetrics(app)
+
+# static information as metric
+metrics.info('app_info', 'Application info', version='1.0.3')
+
+
 
 # Create a counter to track the number of requests to the endpoint
 requests_total = Counter('requests_total', 'Total number of requests', ['method', 'endpoint'])
-
-#request_latency = Summary('request_latency_seconds', 'The latency of the request')
 
 # Create a summary to track the request processing time
 request_process_time = Summary("request_process_time_seconds", "Request processing time in seconds")
@@ -59,8 +65,8 @@ request_payload = Histogram("request_payload_size_bytes", "Payload size of the r
 # Create gauge metric for available disk space
 disk_space = Gauge("disk_space_free_bytes", "Free disk space in bytes")
 
-# Create info metric with app version and deployment environment
-app_info = Info("app_info", "Information about the app")
+# # Create info metric with app version and deployment environment
+# app_info = Info("app_info", "Information about the app")
 
 
 
@@ -654,15 +660,17 @@ def disk_space_handler():
     disk_space.set(1024 * 1024 * 1024)
     return "Disk Space: 1 GB"
 
-# Add a info metric with app version and deployment environment
-app_info.info({"version": "1.0.1", "environment": "development"})
 
-# # Expose the metrics on /metrics endpoint
-# app.add_url_rule("/metrics", "metrics", MetricsHandler.as_view(registry=app.registry))
-@app.route('/metrics')
-def metrics():
+# # Add a info metric with app version and deployment environment
+# app_info.info({"version": "1.0.1", "environment": "development"})
+
+
+@app.route('/api/metrics')
+def metrics_api():
     return generate_latest()
 
+
+metrics.start_http_server(5001)
 
 
 
