@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  app:
+    image: "${APP_IMAGE}"
+    container_name: "uasset-unittest"
+    restart: on-failure
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORTFOLIO_MONGO_DB_URI:  "mongodb://${DB_USERNAME}:${DB_PASSWORD}@db:27017/develeap_portfolio"
+      PORTFOLIO_MONGO_DB_HOST: db
+      PORTFOLIO_MONGO_DB_PORT: 27017
+      PORTFOLIO_MONGO_DB_NAME: "develeap_portfolio"
+    ports:
+      - "5000:5000"
+    volumes:
+      - uasset_static_utest:/var/data_static
+      - uasset_proxy_conf_utest:/var/data_conf
+    networks:
+      - unittest_net
+
+  db:
+    container_name: mongodb-unittest
+    image: bitnami/mongodb:latest
+    environment:
+      MONGODB_USERNAME: "${DB_USERNAME}"
+      MONGODB_PASSWORD: "${DB_PASSWORD}"
+      MONGODB_DATABASE: "${DB_NAME}"
+      MONGODB_ROOT_USERNAME: "${DB_ROOT_USERNAME}"
+      MONGODB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+
+    healthcheck:
+      test: ["CMD",  "mongosh", "--eval", "db.runCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongodb_data_container_utest:/data/db
+    networks:
+      - unittest_net
+
+volumes:
+  uasset_static_utest:
+  uasset_proxy_conf_utest:
+  mongodb_data_container_utest:
+
+networks:
+  unittest_net:
