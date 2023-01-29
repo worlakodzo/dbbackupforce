@@ -665,12 +665,12 @@ def disk_space_handler():
 # app_info.info({"version": "1.0.1", "environment": "development"})
 
 
-@app.route('/api/metrics')
+@app.route('/metrics')
 def metrics_api():
     return generate_latest()
 
 
-metrics.start_http_server(5001)
+# metrics.start_http_server(5001)
 
 
 
