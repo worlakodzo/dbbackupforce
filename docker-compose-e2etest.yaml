@@ -49,7 +49,7 @@ services:
       - "8085:80"
     volumes:
       - uasset_static:/var/uasset/static
-      - uasset_proxy_conf:/etc/nginx/conf.d:ro
+      - uasset_proxy_conf:/etc/nginx/conf.d:rw
     depends_on:
         app:
           condition: service_healthy

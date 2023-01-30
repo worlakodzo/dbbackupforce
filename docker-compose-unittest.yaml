@@ -17,7 +17,7 @@ services:
       - "5000:5000"
     volumes:
       - uasset_static_utest:/var/data_static
-      - uasset_proxy_conf_utest:/var/data_conf
+      - uasset_proxy_conf_utest:/var/data_conf:rw
     networks:
       - unittest_net
 
