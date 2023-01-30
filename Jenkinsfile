@@ -156,7 +156,7 @@ pipeline {
                    println('Update application helm chart image tag')
                    sh"""
                         cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
-                        sed -i "s/tag:.*/tag: $TAG/g" values.yaml
+                        sed -i "s/tag:.*/tag: ${IMAGE_TAG}/g" values.yaml
 
                         git add .
                         git commit -m "updated uasset image with $TAG"
