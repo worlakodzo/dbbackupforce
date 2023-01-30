@@ -65,6 +65,6 @@ volumes:
   uasset_proxy_conf:
   mongodb_data_container:
 
-# networks:
-#   endtoendtest_net:
+networks:
+  endtoendtest_net:
 #   endtoendtest_front_net:
