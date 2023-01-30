@@ -24,7 +24,8 @@ pipeline {
             steps {
                 script {
 
-                    env.IMAGE_TAG = "1.0"
+                    env.IMAGE_TAG = "1.0" // Initial/Default major and minor version
+
                     sh """
                         # Create .env file
                         echo COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME >> .env
@@ -40,16 +41,18 @@ pipeline {
                     // Checkout branch
                     checkout scm
 
-
+                    // Get Tag git remote
                     env.LAST_TAG = getLastVersionTag()
                     if (env.LAST_TAG == ""){
                         println("Tag is empty")
+                        env.LAST_TAG = env.IMAGE_TAG
                     }else{
                         println("Tag is not empty")
                     }
 
-                    // // Get new 3 number version
-                    // env.NEW_TAG = getNextgetNext3NumberVersion("${env.LAST_TAG}")
+                    // Get new 3 number version
+                    env.IMAGE_TAG = getNextgetNext3NumberVersion("${env.LAST_TAG}")
+                    println("env.IMAGE_TAG: ${env.IMAGE_TAG}")
 
 
                 }
@@ -57,7 +60,7 @@ pipeline {
         }
 
 
-        stage ("Build") {
+        stage ("Build & Package") {
 
             when {
                 anyOf {
@@ -102,6 +105,10 @@ pipeline {
                         sh """
                             cd ${WORKSPACE}
                             docker-compose -f docker-compose-unittest.yaml  up -d
+
+                            pip3 install requests
+                            python3 ${WORKSPACE}/app/test/test_unittest.py
+
                         """                   
                 }
             }
@@ -142,20 +149,33 @@ pipeline {
             steps{
                 script{
                         sh"""
-                            pip3 install requests
-
                             cd ${WORKSPACE}
                             docker-compose -f docker-compose-e2etest.yaml up -d
 
-                            # python3 e2e.py env.TEST_INSTANCE_PUBLIC_IP
+                             python3 ${WORKSPACE}/app/test/test_e2e_test.py
                         """
                 }
             }
             
         }
 
-
-
+        stage('Push Tag'){
+            when {branch "main"}
+            steps{
+                script{
+                        sh"""
+                            cd ${WORKSPACE}
+                            git clean -f
+                            git config --global user.name "worlako-jenkin-pipeline"
+                            git config --global user.email "worlako@jenkinpipeline.com"
+                            git remote set-url origin ${PROJECT_REPO_URL}
+                            git tag ${IMAGE_TAG} || echo "tag already exists."
+                            git push origin --tags
+                        """
+                }
+            }
+            
+        }
     }
 
 
@@ -267,27 +287,4 @@ def getLastVersionTag(){
     }
 
     return ""
-}
-
-
-def getLastTag(){
-
-    def tags = sh(script: 'git tag --sort=committerdate -l | tail -1', returnStdout: true).trim()
-
-    // def git = "git"
-
-    // def tags = sh(returnStdout: true, script: "git ls-remote --tags origin").readLines().collect {
-
-    //     def tag = it.split()[1].replaceAll("refs/tags/", "")
-
-    //     [tagName: tag, timestamp: sh(returnStdout: true, script: "git log -1 --format=%ct ${tag}").trim().toLong()]
-    
-    // }.sort { it.timestamp }
-
-    // tags.each {
-    //     echo "${it.tagName} - ${it.timestamp}"
-    // }
-
-    println(tags)
-
 }
