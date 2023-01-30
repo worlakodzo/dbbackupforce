@@ -1,8 +1,0 @@
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-alertmanagerconfigs.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-alertmanagers.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-podmonitors.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-probes.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-prometheuses.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-prometheusrules.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-servicemonitors.yaml
-kubectl create -n prometheus -f https://raw.githubusercontent.com/prometheus-community/helm-charts/kube-prometheus-stack-30.1.0/charts/kube-prometheus-stack/crds/crd-thanosrulers.yaml

@@ -14,6 +14,7 @@ pipeline {
         DB_PORT="27017"
         APP_NAME="uasset"
         REPOSITORY="uasset"
+        REPOSITORY_HELM="uasset_helm"
         AWS_REGISTRY='644435390668.dkr.ecr.us-west-2.amazonaws.com'
     }
 
@@ -85,6 +86,17 @@ pipeline {
 
                         // Update APP_IMAGE
                         env.APP_IMAGE="$AWS_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+
+
+                        // Package helm chart
+                        sh"""
+                            git clone ${PROJECT_GITOPS_REPO_URL}
+                            
+                            cd portfolio-gitops/manifest/
+                            helm package  uasset --app-version ${IMAGE_TAG} --version ${IMAGE_TAG}
+                        """
+
+
                     
                 }
             }
@@ -130,6 +142,27 @@ pipeline {
                         build_app.push("${IMAGE_TAG}")
                     
                     }
+
+                   println('Pulishing application helm to elastic container registry...')
+                    // Push Application Helm
+                    sh"""
+                        cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
+                        aws ecr get-login-password --region us-west-2 | helm registry login --username AWS --password-stdin 644435390668.dkr.ecr.us-west-2.amazonaws.com
+                        helm push uasset*.tgz 644435390668.dkr.ecr.us-west-2.amazonaws.com/
+                    """
+
+
+                   // Update application helm chart image tag
+                   println('Update application helm chart image tag')
+                   sh"""
+                        cd ${WORKSPACE}/portfolio-gitops/manifest/
+                        sed -i "s/tag:.*/tag: $TAG/g" values.yaml
+
+                        git add .
+                        git commit -m "updated uasset image with $TAG"
+                        git push
+                    """
+
 
                 }
 

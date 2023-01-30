@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.democrm.configMap.name }}
-data:
-  LOG_LEVEL: {{ quote .Values.democrm.configMap.data.log_level }}
-  PERSISTENCE: {{ quote .Values.democrm.configMap.data.persistence }}
