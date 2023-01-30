@@ -218,7 +218,7 @@ void setBuildStatus(String message, String state) {
 
     step([
         $class: "GitHubCommitStatusSetter",
-        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "$DEVELEAP_PORTFOLIO_PROJECT_URL"],
+        reposSource: [$class: "ManuallyEnteredRepositorySource", url: "$PROJECT_GITOPS_REPO_URL"],
         // commitShaSource: [$class: "ManuallyEnteredShaSource", sha: commitSha],
         contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
         errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
