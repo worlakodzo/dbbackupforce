@@ -159,7 +159,7 @@ pipeline {
                         sed -i "s/tag:.*/tag: ${IMAGE_TAG}/g" values.yaml
 
                         git add .
-                        git commit -m "updated uasset image with $TAG"
+                        git commit -m "updated uasset image with ${IMAGE_TAG}"
                         git push
                     """
 
