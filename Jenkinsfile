@@ -146,7 +146,7 @@ pipeline {
                    println('Pulishing application helm to elastic container registry...')
                     // Push Application Helm
                     sh"""
-                        cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
+                        cd ${WORKSPACE}/portfolio-gitops/manifest/
                         aws ecr get-login-password --region us-west-2 | helm registry login --username AWS --password-stdin 644435390668.dkr.ecr.us-west-2.amazonaws.com
                         helm push uasset*.tgz oci://644435390668.dkr.ecr.us-west-2.amazonaws.com/
                     """
@@ -155,7 +155,7 @@ pipeline {
                    // Update application helm chart image tag
                    println('Update application helm chart image tag')
                    sh"""
-                        cd ${WORKSPACE}/portfolio-gitops/manifest/
+                        cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
                         sed -i "s/tag:.*/tag: $TAG/g" values.yaml
 
                         git add .
