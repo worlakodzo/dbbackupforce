@@ -19,6 +19,8 @@ services:
       - uasset_proxy_conf:/var/data_conf
     ports:
       - "8086:5000"
+    networks:
+      - endtoendtest_net
     
 
   db:
@@ -38,6 +40,9 @@ services:
       retries: 5
     volumes:
       - mongodb_data_container:/data/db
+    networks:
+      - endtoendtest_net
+
 
   nginx:
     image: nginx:1.23
@@ -51,6 +56,8 @@ services:
     depends_on:
         app:
           condition: service_healthy
+    networks:
+      - endtoendtest_net
 
 
 volumes:
