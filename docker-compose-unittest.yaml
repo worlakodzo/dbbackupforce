@@ -14,7 +14,7 @@ services:
       PORTFOLIO_MONGO_DB_PORT: 27017
       PORTFOLIO_MONGO_DB_NAME: "develeap_portfolio"
     ports:
-      - "5000:5000"
+      - "8086:5000"
     volumes:
       - uasset_static_utest:/var/data_static
       - uasset_proxy_conf_utest:/var/data_conf:rw
