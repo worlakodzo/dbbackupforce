@@ -85,8 +85,8 @@ try:
     # Create all database
     # tables
     create_db()
-except:
-    pass
+except Exception as err:
+    print(err)
 
 
 
@@ -229,7 +229,8 @@ def login():
                 error_message = """<p class="text-danger">Wrong Password or username</p>"""
                 return render_template('login.html', error_message=error_message)
 
-        except:
+        except Exception as err:
+            print(err)
             for error in sys.exc_info():
                 print("Oops!", error, "occurred.")
             return render_template('login.html')

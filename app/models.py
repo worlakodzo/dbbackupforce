@@ -95,6 +95,8 @@ def create_db():
         user = User(
             username= "admin",
             password= "admin",
+            phone= "0245000001",
+            email= "admin@uasset.com",
             full_name= "Admin",
             is_active= True,
             is_admin= True
@@ -102,7 +104,8 @@ def create_db():
 
         # insert the default user
         # into database
-        user.insert()   
+        
+        user.insert()
 
 
 class User():
