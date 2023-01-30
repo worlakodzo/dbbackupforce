@@ -51,7 +51,7 @@ pipeline {
                     }
 
                     // Get new 3 number version
-                    env.IMAGE_TAG = getNextgetNext3NumberVersion("${env.LAST_TAG}")
+                    env.IMAGE_TAG = getNext3NumberVersion("${env.LAST_TAG}")
                     println("env.IMAGE_TAG: ${env.IMAGE_TAG}")
 
 
