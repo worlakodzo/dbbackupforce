@@ -100,6 +100,10 @@ def health():
         # Check database server connection
         db, client = Database.get_database_mongo()
         collections = db.list_collections()
+
+        for coll in list(collections):
+            print(coll)
+
     except:
         db_server_msg = "Not Runing"
     
@@ -162,6 +166,7 @@ def build_file_name(file_extension, prefix):
     new_filename = new_filename.replace("-", "_")
     return new_filename
 
+
 @app.route('/display/<filename>')
 def display_image(filename):
 	return redirect(url_for('static', filename='uploads/' + filename), code=301)
@@ -183,6 +188,7 @@ def login_required(f):
 def logout():
     session.clear()
     return redirect('/login')
+
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
@@ -714,4 +720,4 @@ def unauthorized(error):
 
 # UASSET 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host = "0.0.0.0", debug = True)

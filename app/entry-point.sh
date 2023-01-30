@@ -7,7 +7,7 @@ cp -r /var/uasset/default.conf  /var/data_conf/default.conf
 # store uploaded images
 mkdir -p ./static/vol/media/img/
 # copy default image 
-cp -r /var/uasset/static/vol/media/img/default.png  /static/vol/media/img/default.png
+cp -r /var/uasset/static/vol/media/img/default.png  ./static/vol/media/img/default.png
 
 rm -rf /var/uasset
 
