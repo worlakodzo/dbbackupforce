@@ -17,8 +17,6 @@ services:
     volumes:
       - uasset_static:/var/data_static
       - uasset_proxy_conf:/var/data_conf
-    ports:
-      - "8086:5000"
     networks:
       - endtoendtest_net
     

@@ -41,10 +41,12 @@ pipeline {
                     checkout scm
 
 
-                    env.TEST_TAG = getLastTag()
-                    println(env.TEST_TAG)
-                    // // Get last tag scm 
-                    // env.LAST_TAG = getLastVersionTag("${MAJOR_MINOR_VERSION}")
+                    env.LAST_TAG = getLastVersionTag()
+                    if (env.LAST_TAG == ""){
+                        println("Tag is empty")
+                    }else{
+                        println("Tag is not empty")
+                    }
 
                     // // Get new 3 number version
                     // env.NEW_TAG = getNextgetNext3NumberVersion("${env.LAST_TAG}")
@@ -246,11 +248,11 @@ def getMajorMinorVersion(release_branch) {
 }
 
 
-def getLastVersionTag(major_minor_version){
+def getLastVersionTag(){
 
     def tagText = sh (
         returnStdout: true,
-        script: "git ls-remote --tags origin  | awk '{print \$2}' | grep '${major_minor_version}' | sed 's@refs/tags/@@'"
+        script: "git ls-remote --tags origin  | awk '{print \$2}' | sed 's@refs/tags/@@'"
         ).trim()
 
     // split tags

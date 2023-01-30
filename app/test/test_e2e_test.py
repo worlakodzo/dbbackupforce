@@ -2,7 +2,7 @@ import requests
 import json
 
 # Define the base URL of the app
-base_url = "http://54.187.146.17:5000"
+base_url = "http://54.187.146.17:8085"
 
 
 # Test creating a user
