@@ -148,7 +148,7 @@ pipeline {
                     sh"""
                         cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
                         aws ecr get-login-password --region us-west-2 | helm registry login --username AWS --password-stdin 644435390668.dkr.ecr.us-west-2.amazonaws.com
-                        helm push uasset*.tgz 644435390668.dkr.ecr.us-west-2.amazonaws.com/
+                        helm push uasset*.tgz oci://644435390668.dkr.ecr.us-west-2.amazonaws.com/
                     """
 
 
