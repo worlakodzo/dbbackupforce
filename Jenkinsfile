@@ -315,7 +315,7 @@ def getLastVersionTag(){
 
     def tagText = sh (
         returnStdout: true,
-        script: "git ls-remote --tags origin  | awk '{print \$2}' | sed 's@refs/tags/@@'"
+        script: "git --tags origin  | awk '{print \$2}' | sed 's@refs/tags/@@'"
         ).trim()
 
     // split tags
