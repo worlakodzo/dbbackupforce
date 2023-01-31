@@ -43,7 +43,7 @@ services:
 
 
   nginx:
-    image: nginx:1.23
+    image: "${PROXY_APP_IMAGE}"
     container_name: uasset-proxy
     restart: on-failure
     ports:

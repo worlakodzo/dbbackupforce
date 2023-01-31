@@ -50,3 +50,10 @@
             ]
         }
     ```
+
+
+
+
+### Reference 
+- https://yashmehrotra.com/posts/building-minimal-docker-images-using-multi-stage-builds/
+- https://gabnotes.org/lighten-your-python-image-docker-multi-stage-builds/
