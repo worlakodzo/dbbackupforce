@@ -1,0 +1,7 @@
+FROM nginx:1.22.1-alpine
+
+RUN mkdir -p /var/uasset/static/
+
+
+COPY static /var/uasset/static
+COPY default.conf /etc/nginx/conf.d/

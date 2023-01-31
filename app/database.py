@@ -6,8 +6,6 @@ class Database:
     @staticmethod
     def get_database_mongo():
         # Get connection host and port
-        # host = os.environ.get("PORTFOLIO_MONGO_DB_HOST", "localhost")
-        # port = int(os.environ.get("PORTFOLIO_MONGO_DB_PORT", "27017"))
         db_name = os.environ.get("PORTFOLIO_MONGO_DB_NAME")
         CONNECTION_STRING = os.environ.get("PORTFOLIO_MONGO_DB_URI")
 
