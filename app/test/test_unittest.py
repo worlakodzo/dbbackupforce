@@ -37,6 +37,7 @@ def test_get_user(_id):
 # Test updating a user
 def test_update_user(_id):
     payload = { 
+        "action_type": "update-user-data",
         "full_name": "Updated Admin Test",
         "about": "Test",
         "job_title": "Test",
