@@ -51,7 +51,7 @@ services:
     volumes:
       - ./proxy:/etc/nginx/conf.d
     networks:
-      - portfolio_prod_net/
+      - portfolio_prod_net
 
 
 
