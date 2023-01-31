@@ -30,7 +30,7 @@ def test_get_user(_id):
     res = requests.get(f"{base_url}/users/{_id}")
 
     assert res.status_code == 200, f"Expected 200, got {res.status_code}"
-    user = res.json()
+    user = res.json()['data']
     assert user["full_name"] == "Admin Test", f"Expected 'Admin Test', got {user['full_name']}"
 
 
@@ -53,7 +53,7 @@ def test_update_user(_id):
 
     assert res.status_code == 200, f"Expected 200, got {res.status_code}"
 
-    user = res.json()
+    user = res.json()['data']
     assert user["full_name"] == "Updated Admin Test", f"Expected 'Updated Admin Test', got {user['full_name']}"
 
 
