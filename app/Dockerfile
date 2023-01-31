@@ -32,4 +32,5 @@ HEALTHCHECK --start-period=30s CMD python -c "import requests; requests.get('htt
 
 
 # Run the application
-ENTRYPOINT [ "gunicorn", "-b 0.0.0.0:5000", "app:app" ]
+ENTRYPOINT [ "python", "app.py" ]
+# ENTRYPOINT [ "gunicorn", "-b 0.0.0.0:5000", "app:app" ]

@@ -129,7 +129,11 @@ pipeline {
                             docker-compose -f docker-compose-unittest.yaml  up -d
 
                             pip3 install requests
-                            # python3 ${WORKSPACE}/app/test/test_unittest.py
+                            python3 ${WORKSPACE}/app/test/test_unittest.py
+
+
+
+                            docker-compose -f docker-compose-unittest.yaml down -v --remove-orphans
 
                         """                   
                 }
@@ -191,11 +195,14 @@ pipeline {
             }
             steps{
                 script{
+                        println("Running End to End Test")
                         sh"""
                             cd ${WORKSPACE}
                             docker-compose -f docker-compose-e2etest.yaml up -d
 
-                            # python3 ${WORKSPACE}/app/test/test_e2e_test.py
+                            python3 ${WORKSPACE}/app/test/test_e2e_test.py
+
+
                         """
                 }
             }
@@ -315,7 +322,7 @@ def getLastVersionTag(){
 
     def tagText = sh (
         returnStdout: true,
-        script: "git ls-remote --tags origin  | awk '{print \$2}' | sed 's@refs/tags/@@'"
+        script: "git ls-remote --tags ${PROJECT_REPO_URL}  | awk '{print \$2}' | sed 's@refs/tags/@@'"
         ).trim()
 
     // split tags
