@@ -14,11 +14,8 @@ services:
       PORTFOLIO_MONGO_DB_HOST: db
       PORTFOLIO_MONGO_DB_PORT: 27017
       PORTFOLIO_MONGO_DB_NAME: "develeap_portfolio"
-    volumes:
-      - uasset_static:/var/data_static
-      - uasset_proxy_conf:/var/data_conf
     networks:
-      - endtoendtest_net
+      - portfolio_prod_net
     
 
   db:
@@ -37,9 +34,9 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - mongodb_data_container:/data/db
+      - mongodb_prod_data_container:/data/db
     networks:
-      - endtoendtest_net
+      - portfolio_prod_net
 
 
   nginx:
@@ -48,21 +45,15 @@ services:
     restart: on-failure
     ports:
       - "8076:80"
-    volumes:
-      - uasset_static:/var/uasset/static
-      - uasset_proxy_conf:/etc/nginx/conf.d:rw
     depends_on:
         app:
           condition: service_healthy
     networks:
-      - endtoendtest_net
+      - portfolio_prod_net
 
 
 volumes:
-  uasset_static:
-  uasset_proxy_conf:
-  mongodb_data_container:
+  mongodb_prod_data_container:
 
 networks:
-  endtoendtest_net:
-#   endtoendtest_front_net:
+  portfolio_prod_net:
