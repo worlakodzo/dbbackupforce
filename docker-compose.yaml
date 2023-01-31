@@ -48,10 +48,11 @@ services:
     depends_on:
         app:
           condition: service_healthy
-    networks:
-      - portfolio_prod_net/
     volumes:
       - ./proxy:/etc/nginx/conf.d
+    networks:
+      - portfolio_prod_net/
+
 
 
 volumes:
