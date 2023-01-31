@@ -39,8 +39,18 @@ pipeline {
                         echo DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD >> .env
                     """
 
+
                     // Checkout branch
-                    checkout scm
+                    // checkout scm
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: scm.branches,
+                        doGenerateSubmoduleConfigurations: scm.doGenerateSubmoduleConfigurations,
+                        extensions: scm.extensions + [[$class: 'CloneOption', noTags: false, reference: '', shallow: true]],
+                        submoduleCfg: [],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ])
+
 
                     // Get Tag git remote
                     env.LAST_TAG = getLastVersionTag()
