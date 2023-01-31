@@ -113,7 +113,6 @@ def health():
     })
 
 
-
 def upload_img(file):
 
     file_path = ""
@@ -242,22 +241,21 @@ def login():
 @login_required
 def dashboard():
 
-    today = datetime.now()
+    user_count = 0
+    asset_count = 0
 
-    total_asset_count = 0 # Asset.query.count()
-    total_license_count = 0 # License.query.filter(License.expiration_date > today).count()
+    user_query = db.users.find({})
+    user_query = list(user_query)
 
+    if user_query:
+        user_count = len(user_query)
 
-    total_asset_in_repair_count = 0 # License.query.filter(License.expiration_date >= today).count()
-    number_of_license_due_expiry_count = 0 # License.query.filter(License.expiration_date <= today).count()
 
 
     return render_template(
         "index.html",
-        total_asset_count = total_asset_count,
-        total_license_count = total_license_count,
-        number_of_license_due_expiry_count = number_of_license_due_expiry_count,
-        total_asset_in_repair_count = total_asset_in_repair_count,
+        user_count = user_count,
+        asset_count = asset_count,
         is_dashboard=True
         )
 
@@ -324,61 +322,7 @@ def asset_list():
 @app.route("/asset_add", methods=["GET", "POST"])
 def asset_add():
     try:
-
-        if request.method == "GET":
-            return render_template("asset_add.html", status_list= STATUS_LIST)
-
-
-        # get data submited from 
-        # the frontend as dictionary object
-        body = request.form
-        photo = ""
-        actual_photo_name = ""
-        file_data = {}
-
-        # save image
-        default_image = "blank-img.jpg"
-        if "upload_asset_image" in request.files:
-            file = request.files['upload_asset_image']
-            file_data = upload_img(file)
-
-        # set default image
-        # if image if not uploaded
-        if file_data:
-            photo= file_data['filename']
-            actual_photo_name = file_data['actual_filename']
-        else:
-            photo= default_image
-            actual_photo_name = default_image
-
-        print("working")
-        # Create new asset object
-        asset = Asset(
-            company= body["company"],
-            asset_name= body["asset_name"],
-            tags= body["asset_tag"],
-            serial_number= body["asset_serial"],
-            model= body["asset_model"],
-            status= body["asset_status"],
-            purchase_date= datetime.fromisoformat(body["purchase_date"]),
-            supplier= body["supplier"],
-            order_number= body["order_number"],
-            purchase_cost= body["purchase_cost"],
-            warranty= body["warranty"],
-            note= body["note"],
-            default_location= body["default_location"],
-            photo= photo,
-            actual_photo_name = actual_photo_name
-            )
-
-        # insert the new asset
-        # into the database
-        asset.insert()
-
-        # return json data
-        return jsonify({
-            "success": True
-        }), 201
+        pass
     
 
     # The code below will 
@@ -395,60 +339,7 @@ def asset_add():
 @app.route("/asset_edit/<int:asset_id>", methods=["GET", "POST"])
 def asset_edit(asset_id):
     try:
-
-        if request.method == "GET":
-            return render_template(
-                "asset_edit.html",
-                asset_id=asset_id,
-                status_list= STATUS_LIST)
-
-
-        # get data submited from 
-        # the frontend as dictionary object
-        body = request.form
-
-        # save image
-        file_data = {}
-        if "upload_asset_image" in request.files:
-            file = request.files['upload_asset_image']
-            file_data = upload_img(file)
-
-        # Get asset
-        asset = Asset.query.get(asset_id)
-
-        # update asset object
-        asset.company= body["company"]
-        asset.asset_name= body["asset_name"]
-        asset.tags= body["asset_tag"]
-        asset.serial_number= body["asset_serial"]
-        asset.model= body["asset_model"]
-        asset.status= body["asset_status"]
-        asset.purchase_date= datetime.fromisoformat(body["purchase_date"])
-        asset.supplier= body["supplier"]
-        asset.order_number= body["order_number"]
-        asset.purchase_cost= body["purchase_cost"]
-        asset.warranty= body["warranty"]
-        asset.note= body["note"]
-        asset.default_location= body["default_location"]
-
-        # update photo attribute
-        # when new asset image is
-        # loaded
-        if file_data:
-            if "filename" in file_data:
-                asset.photo= file_data['filename']
-                asset.actual_photo_name = file_data['actual_filename']
-        
-
-        # commit asset
-        # into the database
-        asset.update()
-
-        # return json data
-        return jsonify({
-            "success": True
-        }), 200
-    
+        pass
 
     # The code below will 
     # execute when error occur
@@ -653,9 +544,6 @@ def update_user_setting(body, user_query):
 
 
 
-
-# user = db.users.find_one({"username":"admin"})
-# reset_password({"password": "admin"}, user)
 ################  END API ##########################################
 
 
