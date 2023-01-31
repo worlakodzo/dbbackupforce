@@ -487,6 +487,7 @@ def users():
                 "data": users
             })
 
+
         elif request.method == "POST":
             requests_total.labels('POST', '/users').inc()
 
@@ -499,7 +500,7 @@ def users():
             return jsonify({
                 "success": True,
                 "_id": result.inserted_id
-            })
+            }),201
 
 
     # The code below will 

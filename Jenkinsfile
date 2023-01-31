@@ -195,7 +195,7 @@ pipeline {
                             cd ${WORKSPACE}
                             docker-compose -f docker-compose-e2etest.yaml up -d
 
-                            # python3 ${WORKSPACE}/app/test/test_e2e_test.py
+                            python3 ${WORKSPACE}/app/test/test_e2e_test.py
                         """
                 }
             }
