@@ -49,7 +49,9 @@ services:
         app:
           condition: service_healthy
     networks:
-      - portfolio_prod_net
+      - portfolio_prod_net/
+    volumes:
+      - ./proxy:/etc/nginx/conf.d
 
 
 volumes:
