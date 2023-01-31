@@ -3,7 +3,7 @@ version: '3.9'
 services:
   app:
     image: "${APP_IMAGE}"
-    container_name: "uasset-app"
+    container_name: "uasset-app-prod"
     restart: on-failure
     depends_on:
        db:
@@ -19,7 +19,7 @@ services:
     
 
   db:
-    container_name: mongodb
+    container_name: mongodb-prod
     image: bitnami/mongodb:latest
     environment:
       MONGODB_USERNAME: "${DB_USERNAME}"
@@ -41,7 +41,7 @@ services:
 
   nginx:
     image: "${PROXY_APP_IMAGE}"
-    container_name: uasset-proxy
+    container_name: uasset-proxy-prod
     restart: on-failure
     ports:
       - "8076:80"
