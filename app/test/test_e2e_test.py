@@ -2,7 +2,7 @@ import requests
 import json
 
 # Define the base URL of the app
-base_url = "http://54.212.86.8:8085"
+base_url = "http://worlako.jumpingcrab.com:8085"
 
 
 # Test creating a user

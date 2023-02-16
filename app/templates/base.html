@@ -42,12 +42,12 @@
 
 <body>
 
-  <!-- ======= Header ======= -->
+  <!-- ======= Header birds ======= -->
   <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="{{url_for('dashboard')}}" class="logo d-flex align-items-center">
-        <span class="d-none d-lg-block">UASSET</span>
+        <span class="d-none d-lg-block">backUpforce+</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
@@ -112,12 +112,27 @@
       </li><!-- End Users Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="#">
-          <i class="bi bi-box-seam"></i>
-          <span>Assets</span>
+        <a class="nav-link {% if is_jobs %}-{%else%}collapsed{%endif%}" href="{{url_for('job.job_list')}}">
+          <i class="bi bi-list-task"></i>
+          <span>Jobs</span>
         </a>
       </li><!-- End Assets Page Nav -->
 
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#">
+          <i class="bi bi-download"></i>
+          <span>Back Up</span>
+        </a>
+      </li><!-- End Assets Page Nav -->
+
+
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="#">
+          <i class="bi bi-key"></i>
+          <span>Manage Credentials</span>
+        </a>
+      </li><!-- End Assets Page Nav -->
 
       <!-- <li class="nav-item">
         <a class="nav-link collapsed" href="{{url_for('users_list')}}">

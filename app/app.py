@@ -11,6 +11,9 @@ from prometheus_client import Counter, Histogram, Summary, generate_latest, Gaug
 # https://blog.viktoradam.net/2020/05/11/prometheus-flask-exporter/
 from prometheus_flask_exporter import PrometheusMetrics
 
+# https://stackoverflow.com/questions/6957396/url-building-with-flask-and-non-unique-handler-names/6958518
+from job_views import job
+
 
 from models import (
     create_db,
@@ -36,6 +39,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # create flask application
 app = Flask(__name__)
+app.register_blueprint(job)
 
 metrics = PrometheusMetrics(app)
 
@@ -422,6 +426,12 @@ def user_detail(id:str):
             # get link of user image
             photo_link = os.path.join(app.config['UPLOAD_FOLDER'], user_query['photo']['path'])
             user_query['photo_link'] = f"/{photo_link}"
+
+
+            print({
+                "success": True,
+                "data": user_query
+            })
 
             return jsonify({
                 "success": True,
