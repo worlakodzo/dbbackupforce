@@ -1,19 +1,19 @@
-{% extends 'base/base.html' %}
+{% extends 'base.html' %}
 
-{% block title %} {{action_type}} Add Job | backupforce+{% endblock %}
+{% block title %} {{action_type}} Job | backupforce+{% endblock %}
 
 {% block headblock %}
 
 
 {% endblock %}
 
-{% block main %}
+{% block content %}
 <div class="pagetitle">
-  <h1 id="license-action-type" data-action-type="{{action_type}}">{{action_type}} License</h1>
+  <h1 id="job-action-type" data-action-type="{{action_type}}">{{action_type}} Job</h1>
   <nav>
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'legalzard_admin_temp:dashboard'  %}">Home</a></li>
-      <li class="breadcrumb-item active">Licenses</li>
+      <li class="breadcrumb-item"><a href="{{url_for('job.job_list')}}">Home</a></li>
+      <li class="breadcrumb-item active">Jobs</li>
     </ol>
   </nav>
 </div><!-- End Page Title -->
@@ -36,98 +36,34 @@
      <!--End Error-->
 
       <div class="col-lg-8">
-        <form id="license-form" style="display: none;" action="#" data-method-type="{{method}}" data-event-id="{{license_event_id}}">
-
-       
-
-        <div class="col-lg-8">
-
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Upload license image <span style="color: red;">*</span></h5>
-
-              <div class="row mb-3">
-                <div class="col-sm-12">
-                  <input class="form-control" type="file" id="license-image" accept="image/png, image/gif, image/jpeg, image/jeg" >
-                </div>
-              </div>
-
-              <!--BEGIN image display-->
-              <div style="display: none;" id="license-image-view-container"><img id="license-image-view" src="#" height="100px" /></div>
-           
-
-              <div id="processing-image" style="display: none;">
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span class="visually-hidden">Proccessing image...</span> Proccessing image...
-              </div>
-              <!--END image display-->
-
-              <p id="license-image-error" style="color: red; display: none;">License image required</p>
-            </div>
-          </div>
-
-        </div>
-
-
-        <div class="col-lg-12">
-
-          <div class="card">
-            <div   class="card-body">
-              <h5 class="card-title">Description</h5>
-
-              <div class="col-md-12">
-                <textarea  class="form-control" id="license-description" rows="15"></textarea>
-              </div>
-              <p id="description-error" style="color: red; display: none;">Description required</p>
-            </div>
-          </div>
-
-
-
-
-        </div>
-
-        <div class="col-lg-12">
-
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Short description</h5>
-
-
-              <div class="col-md-12">
-                <textarea  class="form-control" id="short-description" rows="4"></textarea>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-
+        <form id="job-form" style="display: block;" action="#" data-method-type="{{method}}" data-job-id="{{job_id}}">
 
 
         <div class="col-lg-12">
 
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Other Information</h5>
+              <h5 class="card-title">General Information</h5>
 
 
                 <div  class="col-12 other-info">
-                  <label for="license-name" class="form-label">License name <span style="color: red;">*</span></label>
-                  <input type="text" class="form-control" id="license-name">
-                  <p id="license-name-error" style="color: red; display: none;">License name required</p>
+                  <label for="job-name" class="form-label"><strong>Job name</strong><span style="color: red;">*</span></label>
+                  <input type="text" class="form-control" id="job-name">
+                  <p id="job-name-error" style="color: red; display: none;">Job name required</p>
                 </div>
 
-                <div class="col-12 other-info">
-                  <label for="version" class="form-label">Version <span style="color: red;">*</span></label>
-                  <input type="email" class="form-control" id="version">
-                  <p id="version-error" style="color: red; display: none;">License version required</p>
+
+                <div class="col-md-12 other-info">
+                  <label for="description" class="form-label"><strong>Description</strong></label>
+                  <textarea class="form-control" id="description" rows="4"></textarea>
                 </div>
 
+
+
+
                 <div class="col-12 other-info">
-                  <label for="type-of-license" class="form-label">Type of license <span style="color: red;">*</span></label>
-                  <select required id="type-of-license" class="form-select">
+                  <label for="database-engine" class="form-label"><strong>Database engine</strong> <span style="color: red;">*</span></label>
+                  <select required id="database-engine" class="form-select">
                     <option value="0" selected disabled>--please choose--</option>
                     <option value="COPYLEFT">COPYLEFT</option>
                     <option value="PERMISSIVE">PERMISSIVE</option>
@@ -135,37 +71,16 @@
                     <option value="STRONG COPYLEFT">STRONG COPYLEFT</option>
                     <option value="PUBLIC DOMAIN">PUBLIC DOMAIN</option>
                   </select>
-                  <p id="type-of-license-error" style="color: red; display: none;">Type of license required</p>
-                </div>
-
-                <div class="col-12 other-info">
-                  <label for="license-url" class="form-label">License url <span style="color: red;">*</span></label>
-                  <input type="text" class="form-control" id="license-url">
-                  <p id="license-url-error" style="color: red; display: none;">License url required</p>
+                  <p id="database-engine-error" style="color: red; display: none;">Database engine required</p>
                 </div>
 
 
-
-                <div class="col-md-12 other-info">
-                  <label for="disclaimer" class="form-label">Disclaimer</label>
-                  <textarea class="form-control" id="disclaimer" rows="4"></textarea>
+                <div style="margin-top: 50px;" class="col-md-12 other-info">
+                    <input class="form-check-input" type="checkbox" id="enable-automatic-backed-up" checked>
+                    <label class="form-check-label" for="enable-automatic-backed-up">
+                      Enable automatic backed up
+                    </label>
                 </div>
-
-
-
-                <div class="col-md-12 other-info">
-                  <label for="risk-for-choosing-license" class="form-label">Risk for choosing license</label>
-                  <textarea class="form-control" id="risk-for-choosing-license" rows="4"></textarea>
-                </div>
-
-
-
-
-                <div class="col-md-12 other-info">
-                  <label for="limitation-of-liability" class="form-label">Limitation of liability</label>
-                  <textarea class="form-control" id="limitation-of-liability" rows="4"></textarea>
-                </div>
-
 
 
             </div>
@@ -173,95 +88,88 @@
 
 
         </div>
+
+        <div class="col-lg-12">
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Duration</h5>
+
+
+                <div  class="col-6 other-info">
+                  <label for="job-start-time" class="form-label"><strong>Job Start time</strong><span style="color: red;">*</span></label>
+                  <input id="job-start-time" type="time" class="form-control">
+                  <p id="job-start-time-error" style="color: red; display: none;">Job Start time required</p>
+                </div>
+
+
+                <div class="col-6 other-info">
+                  <label for="interval" class="form-label"><strong>Interval</strong> <span style="color: red;">*</span></label>
+                  <select required id="interval" class="form-select">
+                    <option value="0" selected disabled>--please choose--</option>
+                    <option value="COPYLEFT">COPYLEFT</option>
+                    <option value="PERMISSIVE">PERMISSIVE</option>
+                    <option value="WEAKLY COPYLEFT">WEAKLY COPYLEFT</option>
+                    <option value="STRONG COPYLEFT">STRONG COPYLEFT</option>
+                    <option value="PUBLIC DOMAIN">PUBLIC DOMAIN</option>
+                  </select>
+                  <p id="interval-error" style="color: red; display: none;">Interval required</p>
+                </div>
+
+                <div class="col-6 other-info">
+                  <label for="interval-value" class="form-label"><strong>Interval Value</strong> <span style="color: red;">*</span></label>
+                  <input type="text" class="form-control" id="interval-value">
+                  <p id="interval-value-error" style="color: red; display: none;">Interval Value url required</p>
+                </div>
+
+            </div>
+          </div>
+
+
+        </div>
+
 
 
         <div class="col-lg-12">
 
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">License Tags</h5>
-              <div id="license-tags-container" class="col-lg-12">
-
-                <!--TAGS ARE DISPLAY HERE-->
+              <h5 class="card-title">Credentials</h5>
 
 
-              </div>
-
-              <div class="col-6 other-info">
-                <button type="button" id="btn-add-license-tag" class="btn btn-outline-primary">Add Tag</button>
-              </div>
-            </div>
-          </div>
-
-
-        </div>
-
-
-
-        <div class="col-lg-12">
-
-          <div class="card">
-            <div   class="card-body">
-              <h5 class="card-title">License attributes</h5>
-
-              <div  class="col-12 other-info">
-                <label for="license-attribute-heading" class="form-label">Attribute Heading <span style="color: red;">*</span></label>
-                <input type="text" class="form-control" value="TERMS AND CONDITIONS" id="license-attribute-heading">
-                <p id="license-attribute-heading-error" style="color: red; display: none;">Attribute Heading required</p>
-              </div>
+                <div class="col-12 other-info">
+                  <label for="database-credential-id" class="form-label"><strong>Database credential ID</strong> <span style="color: red;">*</span></label>
+                  <select required id="database-credential-id" class="form-select">
+                    <option value="0" selected disabled>--please choose--</option>
+                    <option value="COPYLEFT">COPYLEFT</option>
+                    <option value="PERMISSIVE">PERMISSIVE</option>
+                    <option value="WEAKLY COPYLEFT">WEAKLY COPYLEFT</option>
+                    <option value="STRONG COPYLEFT">STRONG COPYLEFT</option>
+                    <option value="PUBLIC DOMAIN">PUBLIC DOMAIN</option>
+                  </select>
+                  <p id="database-credential-id-error" style="color: red; display: none;">Database Credential required</p>
+                </div>
 
 
-              <div class="col-12 other-info">
-                <label for="type-of-license" class="form-label">Attributes <span style="color: red;">*</span></label>
-                <select required multiple size="8" id="license-attribute" class="form-select selectpicker">
-                  <option value="0" selected disabled>--please choose--</option>
-                </select>
-                <p id="license-attribute-error" style="color: red; display: none;">Attributes required</p>
-              </div>
+                <div class="col-12 other-info">
+                  <label for="backup-storage-provider-credential-id" class="form-label"><strong>Backup storage provider credential ID</strong> <span style="color: red;">*</span></label>
+                  <select required id="backup-storage-provider-credential-id" class="form-select">
+                    <option value="0" selected disabled>--please choose--</option>
+                    <option value="COPYLEFT">COPYLEFT</option>
+                    <option value="PERMISSIVE">PERMISSIVE</option>
+                    <option value="WEAKLY COPYLEFT">WEAKLY COPYLEFT</option>
+                    <option value="STRONG COPYLEFT">STRONG COPYLEFT</option>
+                    <option value="PUBLIC DOMAIN">PUBLIC DOMAIN</option>
+                  </select>
+                  <p id="backup-storage-provider-credential-id-error" style="color: red; display: none;">Backup storage provider required</p>
+                </div>
 
-              <div class="col-md-12 other-info">
-                <br><label for="other-license-attribute" class="form-label">Other Attribute</label>
-                <br><small>seperate attributes with comma i.e (sample1,sample2)</small>
-                <textarea class="form-control" id="other-license-attribute" rows="3"></textarea>
-              </div>
+
 
             </div>
           </div>
-        </div>
-
-        <div class="col-lg-12">
-
-          <div class="card">
-            <div   class="card-body">
-              <h5 class="card-title">Compatible Licenses</h5>
-
-              <div class="col-12 other-info">
-                <select  required multiple size="8" id="license-compatible-with" class="form-select">
-                  <option value="0" selected disabled>--please choose--</option>
-                </select>
-                <p id="license-compatible-with-error" style="color: red; display: none;">License compatible with required</p>
-              </div>
-
-            </div>
-          </div>
-        </div>
 
 
-        <div class="col-lg-12">
-
-          <div class="card">
-            <div   class="card-body">
-              <h5 class="card-title">Incompatible Licenses</h5>
-
-              <div class="col-12 other-info">
-                <select required multiple size="8" id="license-not-compatible-with" class="form-select">
-                  <option value="0" selected disabled>--please choose--</option>
-                </select>
-                <p id="license-not-compatible-with-error" style="color: red; display: none;">License not compatible with required</p>
-              </div>
-
-            </div>
-          </div>
         </div>
 
         <div>

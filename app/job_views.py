@@ -11,11 +11,11 @@ def job_list():
 
 @job.route('/job_add')
 def job_add():
-    return render_template("jobs-create-and-update.html", page_title= "Add")
+    return render_template("jobs-create-and-update.html", action_type= "Add", method = "POST")
 
-@job.route('/job_edit')
-def job_edit():
-    return render_template("jobs-create-and-update.html", page_title= "Edit")
+@job.route('/job_edit/<string:job_id>')
+def job_edit(job_id:str):
+    return render_template("jobs-create-and-update.html", job_id= job_id, action_type= "Edit" , method = "PUT")
 
 
 

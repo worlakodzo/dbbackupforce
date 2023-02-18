@@ -5,23 +5,23 @@ import uuid
 from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
+from default.db.load_default import load_default_manage_credential_type
 import logging
 from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
+
+
 
 # https://blog.viktoradam.net/2020/05/11/prometheus-flask-exporter/
 from prometheus_flask_exporter import PrometheusMetrics
 
 # https://stackoverflow.com/questions/6957396/url-building-with-flask-and-non-unique-handler-names/6958518
 from job_views import job
+from manage_credentials_views import mcredential
 
 
 from models import (
     create_db,
-    Asset,
     User,
-
-    STATUS_LIST,
-    CATEGORY_LIST,
     )
 
 
@@ -40,6 +40,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 # create flask application
 app = Flask(__name__)
 app.register_blueprint(job)
+app.register_blueprint(mcredential)
 
 metrics = PrometheusMetrics(app)
 
@@ -290,74 +291,6 @@ def create_user():
         abort(500)
 
 
-@app.route("/assets", methods=["GET"])
-def asset_list():
-    try:
-        # Retrieve all asset from database
-        asset_query = Asset.query.all()
-        assets = []
-
-        # loop over all asset object 
-        # and format the data
-        for asset in asset_query:
-            data = asset.format()
-
-            # get link of asset image
-            photo_link = os.path.join(app.config['UPLOAD_FOLDER'], asset.photo)
-            data['photo_link'] = f"/{photo_link}"
-
-
-            # add data to list of asset
-            assets.append(data)
-
-        return render_template("asset_list.html", assets= assets)
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route("/asset_add", methods=["GET", "POST"])
-def asset_add():
-    try:
-        pass
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route("/asset_edit/<int:asset_id>", methods=["GET", "POST"])
-def asset_edit(asset_id):
-    try:
-        pass
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-
-
 
 ################## BEGIN API ###################################
 
@@ -580,6 +513,8 @@ def metrics_api():
 
 
 
+
+
 """
 Error handle
 """
@@ -620,4 +555,8 @@ def unauthorized(error):
 
 # UASSET 
 if __name__ == "__main__":
+
+    load_default_manage_credential_type(db)
+
     app.run(host = "0.0.0.0", debug = True)
+    
