@@ -1,8 +1,8 @@
-# backUpforce Plus
+# backUpforcePlus
 
 ## Introduction:
 
-The following API documentation provides information on how to access and utilize the backUpforce Plus. This documentation includes details on the various endpoints, request methods, and expected responses. With this information, developers and users can effectively interact with the system to create, read, update, and delete user information.
+The following API documentation provides information on how to access and utilize the backUpforcePlus. This documentation includes details on the various endpoints, request methods, and expected responses. With this information, developers and users can effectively interact with the system to create, read, update, and delete user information.
 
 
 ### GET /health
