@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint
-from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
+from flask import render_template, request, jsonify, abort
 from  database import Database
 import crypto_bkfplus
 import os
@@ -35,7 +35,7 @@ def credentials():
 
             # Get manage credentials
             credentials_query = db.manage_credentials.find({})
-            credentials = [format_read_manage_credential_data(data) for data in list(credentials_query)]
+            credentials = [format_read_manage_credential_data(data) for data in credentials_query]
 
             # Get manage credential types
             credentials_types_query = db.manage_credential_types.find({})
@@ -49,7 +49,6 @@ def credentials():
         elif request.method == "POST":
             body = request.get_json()
             body = format_save_manage_credential_data(body)
-            print(body)
 
             # Get manage credential
             # check if id exist
@@ -97,8 +96,9 @@ def credential_detail(credential_id:str):
                 credential = format_read_manage_credential_data(credential)
 
             else:
-                status_code = 400
-                abort(400)
+                status_code = 404
+                os.environ['error_msg'] = f"Credential with id {credential_id} does not exist."
+                abort(404)
 
             return jsonify({
                 "success": True,
@@ -135,8 +135,9 @@ def credential_detail(credential_id:str):
                 db.manage_credentials.delete_one({"_id": credential_id})
 
             else:
-                status_code = 400
-                abort(400)
+                status_code = 404
+                os.environ['error_msg'] = f"Credential with id {credential_id} does not exist."
+                abort(404)
 
             return jsonify({
                 "success": True,
@@ -146,8 +147,8 @@ def credential_detail(credential_id:str):
 
 
         else:
-            status_code = 400
-            abort(400)            
+            status_code = 405
+            abort(405)            
 
 
     except Exception as err:

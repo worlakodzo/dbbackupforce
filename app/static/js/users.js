@@ -87,8 +87,10 @@ const loadUsers = () => {
 const displayTableContent = (data) => {
 
     let content = "";
+    let count = 1;
     for(let user of data){
-        content += formatUserData(user)
+        content += formatUserData(user, count)
+        count += 1;
     }
 
     // update table content
@@ -101,21 +103,22 @@ const displayTableContent = (data) => {
 }
 
 
-const formatUserData = (user) => {
+const formatUserData = (user, count) => {
 
     return `
-            <tr>
-                <th id="user-list-row-id-${user._id}" scope="row">1</th>
+            <tr id="user-list-row-id-${user._id}" class="list-fade" scope="row">
+                <td>${count}</td>
                 <td>${user.username}</td>
                 <td>${user.full_name}</td>
                 <td>${user.is_active}</td>
                 <td>${user.is_admin}</td>
                 <td style="float: right">
-                <div class="btn-group" role="group" aria-label="Basic example">
-                    <a type="button" class="btn btn-primary" href="/user-profile/${user._id}"><i class="bi bi-eye-fill"></i></a>
-                    <a type="button" data-id="${user._id}"  data-username="${user.username}" data-bs-toggle="modal" data-bs-target="#delete-user-modal" class="btn btn-danger delete-user"><i class="bx bxs-trash-alt"></i></a>
-                </div>
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <a type="button" class="btn btn-primary" href="/user-profile/${user._id}"><i class="bi bi-eye-fill"></i></a>
+                        <a type="button" data-id="${user._id}"  data-username="${user.username}" data-bs-toggle="modal" data-bs-target="#delete-user-modal" class="btn btn-danger delete-user"><i class="bx bxs-trash-alt"></i></a>
+                    </div>
                 </td>
+
             </tr>
     `
 }
@@ -721,6 +724,7 @@ const deleteUser = (event) => {
 
     const btnDeleteEl = document.querySelector("#confirm-delete");
     const id = btnDeleteEl.getAttribute("data-id");
+    const userRowEl = document.querySelector(`#user-list-row-id-${id}`);
     btnDeleteEl.innerHTML = deletingData;
 
     // Send to server
@@ -732,6 +736,13 @@ const deleteUser = (event) => {
         if (res.status === 204){
             btnDeleteEl.innerHTML = "Delete";
             document.querySelector("#delete-user-modal-close").click();
+
+            // BEGIN remove user row
+            userRowEl.classList.add("list-fade");
+            userRowEl.style.opacity = '0';
+            setTimeout(() => userRowEl.remove(), 1000);
+            // EMD remove credential card
+
             $.notify("User deleted.", "success");
 
         }else{

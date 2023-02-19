@@ -442,7 +442,7 @@ const loadAWSStorageCredentialTemplate = (formId, credential, hasData=false) => 
 
         <div  class="col-12 other-info">
             <label for="credential-identifier-${formId}" class="form-label"><strong>Credential Identifier</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="credential-identifier-${formId}" ${readOnly} value="${credentialId}>
+            <input type="text" class="form-control" ${readOnly} id="credential-identifier-${formId}"  value="${credentialId}">
             <p id="credential-identifier-${formId}-error" style="color: red; display: none;">Credential identifier required</p>
         </div>
     
@@ -749,8 +749,8 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
 
             } else if (credentialType === "storage_providers"){
 
-                for (let provider of backUpStorageProvider.providers._id){
-                    if (engineOrStorageProvider === provider){
+                for (let provider of backUpStorageProvider.providers){
+                    if (engineOrStorageProvider === provider._id){
                         engineOrStorageProviderData = provider;
                     }    
                 }

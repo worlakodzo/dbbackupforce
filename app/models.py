@@ -6,14 +6,14 @@ db, _ = Database.get_database_mongo()
 def create_db():
 
     # retrieve user
-    user = db.users.find_one({"username":"admin"})
+    user = db.users.find_one({"username":"sysadmin"})
 
     # create default if it
     # does not exist
     if not user:
         # Create a default user
         user = User(
-            username= "admin",
+            username= "sysadmin",
             password= "admin",
             phone= "0245000001",
             email= "admin@uasset.com",

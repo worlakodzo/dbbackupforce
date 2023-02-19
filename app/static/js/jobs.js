@@ -1,744 +1,937 @@
-let index = 0;
-let updateIndex = 0;
-let fileData = {};
-let licenseTagAddCount = 0;
-let responseStatus = 400;
+let manageCredentialTypes = [];
+let manageCredentials = [];
+let databaseEngine = {};
+let backUpStorageProvider = {};
+let credentialCount = 0;
+let credentialData = {};
+const pageLoading =  `
+<a class="btn btn" type="button" disabled>
+<span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>Fetching data...
+</a>
+`
+const savingData = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Saving...`;
+const deletingData = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Deleting...`;
+
+
 
 document.addEventListener("DOMContentLoaded", function(event){
 
-    const licenseImageEl = document.getElementById("license-image");
-    const tableBodyEl = document.getElementById("table-body");
-    const licenseBtnSaveEl = document.getElementById("btn-save-license");
-    const licenseTagAddEl = document.getElementById("btn-add-license-tag");
+    loadManageCredentialRecord();
 
 
-    
-    if(licenseImageEl){
-        licenseImageEl.onchange = uploadFile;
+    document.querySelector("#btn-add-new-credential").addEventListener("click", function(event){
 
-        loadLicenseDropdown();
-        loadCommonAttributeDropdown();
-    }
+        const divEl = document.createElement("div");
+        divEl.setAttribute("class", "col-lg-12");
+        divEl.setAttribute("data-form-id", credentialCount);
+        divEl.setAttribute("id", `credential-form-container-${credentialCount}`);
+        divEl.innerHTML = `
 
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"></h5>
 
-    if(licenseBtnSaveEl){
-        licenseBtnSaveEl.onclick = saveDataToDatabase;
-    }
+                        <form id="credential-form-${credentialCount}" style="display: block;" data-form-id="${credentialCount}" class="form" action="#" data-method-type="POST" data-credential-id="" data-engine-or-storage-provider="">
 
-    if(licenseTagAddEl){
-        licenseTagAddEl.onclick = function(event){
-            formatAddTag("", "");
-        };
-    }
+                            <div class="col-12 other-info">
+                                <label for="type-${credentialCount}" class="form-label"><strong>Type</strong> <span style="color: red;">*</span></label>
+                                <select required id="type-${credentialCount}" data-form-id="${credentialCount}" class="form-select credential-type">
+                                    <option value="" selected disabled>--please choose--</option>
+                                    ${loadCredentialTypeIntoSelectedOption()}
+                                </select>
+                                <p id="type-${credentialCount}-error" style="color: red; display: none;">Type required</p>
+                            </div>
 
-    if(tableBodyEl){
-        loadTable();
-    }
 
+                            <div class="col-12 other-info">
+                                <label for="engine-or-storage-provider-${credentialCount}" id="engine-or-storage-provider-lb-${credentialCount}" class="form-label"><strong>Engine</strong> <span style="color: red;">*</span></label>
+                                <select required id="engine-or-storage-provider-${credentialCount}" data-form-id="${credentialCount}" class="form-select">
+                                    
 
+                                </select>
+                                <p id="engine-or-storage-provider-${credentialCount}-error" style="color: red; display: none;">Engine or Provider required</p>
+                            </div>
 
-    // BEGIN delete of license detail
-    deleteLicenseConfirmEl = document.querySelector("#confirm-delete");
-    if (deleteLicenseConfirmEl) {
 
-        deleteLicenseConfirmEl.addEventListener("click", function(event){
+                            <div id="form-${credentialCount}-content-detail">  
 
-            const spinner = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Deleting...`
-    
-    
-            const eventId = document.getElementById("confirm-delete").getAttribute("data-id");
-            const licenseName = document.getElementById("confirm-delete").getAttribute("data-license-name");
-            this.innerHTML = spinner;
-            const errorEl = document.getElementById("delete-license-error-notify");
-            errorEl.innerHTML = "";
-    
-            fetch(`/api/licenses/${eventId}/`, {
-                    method: "DELETE",
-                    headers: {"Content-Type": "application/json"}
-                }).then(response => {
-    
-                    if (response.status === 200){
-                        const licenseDetailContentEl = document.getElementById(`license-table-row-${eventId}`)
-                        licenseDetailContentEl.remove();
-                        this.innerHTML = "Delete";
-                        document.getElementById("delete-license-modal-close").click();
-    
-                    }else {
-    
-                        this.innerHTML="Delete";
-                        response.json()
-                    }
-    
-                }).then(jsonData => {
-    
-                    errorEl.innerHTML = jsonData.error_msg;
-    
-                }).catch(error => {
-    
-                })
-            })
-            // END delete of license detail
 
-    }
-  
 
 
+                            
+                            </div>
 
 
 
+                            <div>
+                                <button style="float: right;" id="btn-save-credential-${credentialCount}" data-form-id="${credentialCount}"  type="submit" class="btn btn-primary">Save Changes</button>
+                                <button style="float: right; margin-right: 5px;" type="button" id="btn-delete-credential-${credentialCount}" data-form-id="${credentialCount}" class="btn btn-danger">Delete</button>
+                            </div>
 
+                        </form>
 
+                        <div id="error-container-${credentialCount}" style="display: none; margin-top: 100px;" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <p id="error-p-${credentialCount}" ></p>
+                        </div>
 
-})
-
-
-const uploadFile = (event) => {
-
-    const licenseImageEl = document.getElementById("license-image");
-    const processingImageSpinnerEl = document.getElementById("processing-image");
-    const licenseImageViewContainerEl = document.getElementById("license-image-view-container");
-    const licenseImageViewEl = document.getElementById("license-image-view");
-
-    const formData = new FormData()
-    formData.append('file', licenseImageEl.files[0])
-    
-
-    if (licenseImageEl.files && licenseImageEl.files[0]) {
-
-        // preview image selected
-        licenseImageViewContainerEl.style.display = "block"
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            licenseImageViewEl.setAttribute("src", e.target.result);
-        };
-        reader.readAsDataURL(licenseImageEl.files[0]);
-
-
-        // BEGIN Processs image
-        processingImageSpinnerEl.style.display = "block";
-        fetch('/api/attachments/', {
-            method: 'POST',
-            body: formData
-        }).then(response => {
-            processingImageSpinnerEl.style.display = "none";
-            if (response.status === 200){
-                return response.json();
-            }
-    
-        }).then(jsonData => {
-            fileData = jsonData.file_data;
-            console.log(fileData);
-            
-    
-        }).catch(err => {
-    
-            console.log(err);
-            processingImageSpinnerEl.style.display = "none";
-        })
-        // END process images
-
-
-      }
-
-
-}
-
-
-const saveDataToDatabase = (event) =>{
-    event.preventDefault();
-
-    const formEl = document.getElementById("license-form");
-    const errorContainerEl = document.querySelector("#error-container");
-    const errorContentEl = document.querySelector("#error-content");
-    const licenseEventId = formEl.getAttribute("data-event-id");
-    const methodType = formEl.getAttribute("data-method-type");
- 
-    const licenseDescription = document.querySelector("#license-description").value;
-    const shortDescription = document.querySelector("#short-description").value;
-    const licenseName = document.querySelector("#license-name").value;
-    const version = document.querySelector("#version").value;
-    const typeOfLicense = document.querySelector("#type-of-license").value;
-    const licenseUrl = document.querySelector("#license-url").value;
-    const disclaimer = document.querySelector("#disclaimer").value;
-    const riskForChoosingLicense = document.querySelector("#risk-for-choosing-license").value;
-    const limitationOfLiability = document.querySelector("#limitation-of-liability").value;
-    const licenseAttributeHeading = document.querySelector("#license-attribute-heading").value;
-    const licenseAttribute = document.querySelectorAll('#license-attribute option:checked');
-    const licenseCompatibleWith = document.querySelectorAll('#license-compatible-with option:checked');
-    const licenseNotCompatibleWith = document.querySelectorAll('#license-not-compatible-with option:checked');
-    let otherLicenseAttribute = document.querySelector("#other-license-attribute").value;
-    const btnSaveData = document.querySelector("#btn-save-license");
-
-
-
-
-    // reset error 
-    errorContainerEl.style.display = "none";
-    errorContentEl.textContent = "";
-
-    console.log("I am called")
-
-    if (validateInput()){
-
-        console.log("I am valid")
-        // Activate loading
-        const loading = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> saving...';
-        btnSaveData.innerHTML = loading;
-        btnSaveData.disabled = true;
-
-        const licenseNotCompatibleWithList = [];
-        for (let option of licenseNotCompatibleWith) {
-            licenseNotCompatibleWithList.push(option.value);
-        } 
-        
-        const licenseCompatibleWithList = [];
-        for (let option of licenseCompatibleWith) {
-            licenseCompatibleWithList.push(option.value);
-        }
-
-        const licenseAttributeList = [];
-        const otherLicenseAttributeList = [];
-        for (let option of licenseAttribute) {
-            licenseAttributeList.push(option.value);
-        }
-
-        console.log(otherLicenseAttribute)
-        // Other attributes
-        otherLicenseAttribute = otherLicenseAttribute.trim();
-        if (otherLicenseAttribute !== ""){
-            if (otherLicenseAttribute.includes(",")){
-
-                for (let attribute of otherLicenseAttribute.split(",")){
-                    licenseAttributeList.push(sanitizeText(attribute.trim()));
-                    otherLicenseAttributeList.push(sanitizeText(attribute.trim()));
-                }
-            }else{
-                licenseAttributeList.push(otherLicenseAttribute);
-                otherLicenseAttributeList.push(otherLicenseAttribute);
-            }
-        }
-
-
-
-        // Format data
-        const data = {
-            features: [],
-            other_links: [],
-            license_name: licenseName,
-            version: version,
-            license_url: licenseUrl,
-            type_of_license: typeOfLicense,
-            license_tags: getLicenseTagContent(),
-            short_description: sanitizeText(shortDescription),
-            description: sanitizeText(licenseDescription),
-            disclaimer: sanitizeText(disclaimer),
-            risk_for_choosing_license: sanitizeText(riskForChoosingLicense),
-            limitation_of_liability: sanitizeText(limitationOfLiability),
-            logo_detail: {
-                filename: fileData.filename,
-                actual_filename: fileData.actual_filename,
-                file_extension: fileData.file_extension,
-                url: ""
-            },
-            recommendation: " ",
-            license_attributes: {
-                heading: sanitizeText(licenseAttributeHeading),
-                attributes: licenseAttributeList
-            },
-            license_compatible_with_lookup: licenseCompatibleWithList,
-            license_not_compatible_with_lookup: licenseNotCompatibleWithList,
-            other_attributes: otherLicenseAttributeList
-            
-        }
-
-
-        let url = "/api/licenses/";
-        if (methodType === "PUT")
-        {
-            url = "/api/licenses/"+licenseEventId+"/";
-        }
-
-
-        fetch(url, {
-            method: methodType,
-            body: JSON.stringify(data),
-            headers: {"Content-Type": "application/json"}
-        }).then(function(response){
-
-            responseStatus = response.status;
-            if (response.status === 201 || response.status === 200){
-
-                window.location.href = "/temp-admin/licenses/";
-
-            }else{
-
-                return response.json();
-
-            }
-
-        }).then(jsonData => {
-
-                // set error 
-                errorContainerEl.style.display = "block";
-                errorContentEl.textContent = jsonData.error_msg;
-
-                // deactivate loading
-                btnSaveData.innerHTML = "Save";
-                btnSaveData.disabled = false;
-
-        }).catch(function(err){
-
-            // set error 
-            console.log(err)
-            errorContainerEl.style.display = "block";
-            errorContentEl.textContent = err.toString();
-
-            // deactivate loading
-            btnSaveData.innerHTML = "Save";
-            btnSaveData.disabled = false;
-
-        })
-        
-
-
-
-    }
-
-
-}
-
-
-
-const loadTable = () => {
-   
-    const tableSpinnerEl = document.getElementById("table-spinner");
-    const tableBodyEl = document.getElementById("table-body");
-
-    fetch("/api/licenses/", {
-        method: "GET",
-        headers: {"Content-Type": "application/json"}
-    }).then(function(response){
-        if (response.status === 200){
-            return response.json();
-        }else{
-            tableSpinnerEl.style.display = "none";
-        }
-
-    }).then(function(jsonData){
-
-    
-        let content = "";
-        index = 0;
-
-        for (let license of jsonData.data){
-            index += 1;
-            content += tableContent(index, license);
-        }
-
-        tableSpinnerEl.style.display = "none";
-        tableBodyEl.innerHTML = content;
-        document.getElementById("btn-add-new").style.display = "inline-block";
-        // listenToEditBtn();
-        deleteLicense();
-
-    }).catch(function(err){
-        tableSpinnerEl.style.display = "none";
-
-    })
-
-
-   
-
-    
-
-}
-
-const loadLicenseDetailForUpdate = (licenseEventId) => {
-
-    document.getElementById("page-spinner").style.display = "block";
-    document.getElementById("license-form").style.display = "none";
-    const licenseDescription = document.querySelector("#license-description")
-    const shortDescription = document.querySelector("#short-description")
-    const licenseName = document.querySelector("#license-name")
-    const version = document.querySelector("#version")
-    const typeOfLicense = document.querySelector("#type-of-license")
-    const licenseUrl = document.querySelector("#license-url")
-    const disclaimer = document.querySelector("#disclaimer")
-    const riskForChoosingLicense = document.querySelector("#risk-for-choosing-license")
-    const limitationOfLiability = document.querySelector("#limitation-of-liability")
-    const licenseAttributeHeading = document.querySelector("#license-attribute-heading")
-
-
-    const licenseImageViewContainerEl = document.getElementById("license-image-view-container");
-    const licenseImageViewEl = document.getElementById("license-image-view");
-
-    fetch("/api/licenses/"+licenseEventId+"/", {
-        method: "GET",
-        headers: {"Content-Type": "application/json"}
-    }).then(function(response){
-        if (response.status === 200){
-            return response.json();
-        }else{
-            tableSpinnerEl.style.display = "none";
-        }
-
-    }).then(function(jsonData){
-
-        const data = jsonData.data[0];
-        const license = data.softwarelicense;
-        fileData = license.logo_detail;
-
-
-        licenseDescription.innerHTML = license.description;
-        shortDescription.value = license.short_description;
-        licenseName.value = license.license_name;
-        version.value = license.version;
-        typeOfLicense.value = license.type_of_license;
-        licenseUrl.value = license.license_url;
-        disclaimer.value = license.disclaimer;
-        riskForChoosingLicense.value = license.risk_for_choosing_license;
-        limitationOfLiability.value = license.limitation_of_liability;
-        licenseAttributeHeading.value = license.license_attributes.heading;
-        licenseImageViewEl.setAttribute("src", license.logo_detail.url);
-        licenseImageViewContainerEl.style.display = "block";
-
-        $("#license-attribute").val(license.license_attributes.attributes);
-        $("#license-compatible-with").val(license.license_compatible_with_lookup);
-        $("#license-not-compatible-with").val(license.license_not_compatible_with_lookup);
-
-        // display license tags
-        if(license["license_tags"] !== undefined){
-
-            license.license_tags.forEach(data => {
-                const key = Object.keys(data)[0];
-                const value = data[key];
-                formatAddTag(key, value);
-            })
-        }
-        
-
-        document.getElementById("page-spinner").style.display = "none";
-        document.getElementById("license-form").style.display = "block";
-
-
-
-    }).catch(function(err){
-        document.getElementById("page-spinner").style.display = "none";
-        document.getElementById("license-form").style.display = "block";
-
-    })
-
-
-    
-
-}
-
-
-const loadLicenseDropdown = () => {
-
-    fetch("/api/licenses/", {
-        method: "GET",
-        headers: {"Content-Type": "application/json"}
-    }).then(function(response){
-        if (response.status === 200){
-            return response.json();
-        }
-    }).then(function(jsonData){
-
-    
-        let content = '<option selected>None</option>';
-        const licenseNotCompatibleWithEl = document.getElementById("license-not-compatible-with");
-        const licenseCompatibleWithEl = document.getElementById("license-compatible-with");
-
-        for (let license of jsonData.data){
-            content += `<option value="${license.softwarelicense.license_name}">${license.softwarelicense.license_name} (${license.softwarelicense.version})</option>`;
-        }
-
-        licenseCompatibleWithEl.innerHTML = content;
-        licenseNotCompatibleWithEl.innerHTML = content;
-
-
-        // Load license detail
-        // methodType is PUT
-        const licenseFormEl = document.getElementById("license-form");
-        const methodType = licenseFormEl.getAttribute("data-method-type")
-        if(licenseFormEl){
-
-            if(methodType === "PUT"){
-                const licenseEventId = licenseFormEl.getAttribute("data-event-id");
-                loadLicenseDetailForUpdate(licenseEventId);
-            }else{
-                document.getElementById("license-form").style.display = "block";
-                document.getElementById("page-spinner").style.display = "none";
-            }
-
-        }
-
-        
-
-    }).catch(function(err){
-        document.getElementById("page-spinner").style.display = "none";
-
-    })
-
-
-    
-
-}
-
-
-const loadCommonAttributeDropdown = () => {
-   
-
-    fetch("/api/attributes/", {
-        method: "GET",
-        headers: {"Content-Type": "application/json"}
-    }).then(function(response){
-        if (response.status === 200){
-            return response.json();
-        }
-    }).then(function(jsonData){
-
-    
-        let content = '<option selected>None</option>';
-        const licenseAttributeEl = document.getElementById("license-attribute");
-
-        for (let attribute of jsonData.data){
-            if(attribute.attributes.hasOwnProperty("name")){
-                content += `<option value="${attribute.attributes.name}">${attribute.attributes.name}</option>`;
-            }
-        }
-
-        licenseAttributeEl.innerHTML = content;
-        
-
-    }).catch(function(err){
-        tableSpinnerEl.style.display = "none";
-
-    })
-
-
-    
-
-}
-
-
-const tableContent = (index, data) => {
-    license = data.softwarelicense;
-
-    let imageUrl = "";
-    if ("undefined" === typeof (license["logo_detail"])) {
-        imageUrl = "#";
-      }else{
-        imageUrl = license.logo_detail.url;
-      }
-    
-    return `
-            <tr id="license-table-row-${data.eventId}">
-                  <td scope="row">${index}</td>
-                  <td>${license.license_name}</td>
-                  <td>${license.version}</td>
-                  <td><img src="${imageUrl}" height="50px" alt="${license.license_name}"></td>
-                  <td style="width: 10px;">
-
-                    <div class="btn-group" role="group" aria-label="action">
-                        <a href="/temp-admin/license-edit/${data.eventId}/" data-id="${data.eventId}"  class="btn btn-primary">Edit</a>
-                        <a href="#" data-license-version="${license.version}" data-license-name="${license.license_name}"   data-id="${data.eventId}" data-bs-toggle="modal" data-bs-target="#delete-license-modal" class="btn btn-danger delete-license">Delete</a>
                     </div>
 
-                  </td>
-            </tr>    
-            `
+                </div>
+        `;
+        
+
+
+        document.getElementById("credentials-container").appendChild(divEl);
+
+        // Add listener to credential type selected
+        document.getElementById(`type-${credentialCount}`).addEventListener("change", function(event){
+            const credentialType = this.value;
+            const formId = this.getAttribute("data-form-id");
+            const formContentDetailEl = document.getElementById(`form-${formId}-content-detail`).innerHTML = "";
+
+            // Load engine or provider
+            if (credentialType === "database_engines"){
+                document.getElementById(`engine-or-storage-provider-${formId}`).innerHTML = loadEngineIntoSelectedOption();
+                document.getElementById(`engine-or-storage-provider-lb-${formId}`).innerHTML = `<strong>Engine</strong> <span style="color: red;">*</span>`;
+            } else if (credentialType === "storage_providers"){
+                document.getElementById(`engine-or-storage-provider-${formId}`).innerHTML = loadStorageProviderIntoSelectedOption();
+                document.getElementById(`engine-or-storage-provider-lb-${formId}`).innerHTML = `<strong>Provider</strong> <span style="color: red;">*</span>`;
+            }
+
+        });
+
+
+
+        // Add listener to database engine or storage provider selected
+        document.getElementById(`engine-or-storage-provider-${credentialCount}`).addEventListener("change", function(event){
+            const engineOrStorageProvider = this.value;
+            const formId = this.getAttribute("data-form-id");
+            document.getElementById(`credential-form-${formId}`).setAttribute("data-engine-or-storage-provider", engineOrStorageProvider);
+            loadFormFields(engineOrStorageProvider, formId, {}, false);
+        });
+
+        // Add listener to delete button
+        document.getElementById(`btn-delete-credential-${credentialCount}`).addEventListener("click", function(event){
+            const credentialType = this.value;
+            const formId = this.getAttribute("data-form-id");
+            const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`);
+
+            // BEGIN remove credential card
+            credentialFormContainer.classList.add("list-fade");
+            credentialFormContainer.style.opacity = '0';
+            setTimeout(() => credentialFormContainer.remove(), 1000);
+            // EMD remove credential card
+        });
+
+
+        // Add listener to form
+        document.getElementById(`credential-form-${credentialCount}`).addEventListener("submit", function(event){
+            event.preventDefault();
+            const engineOrStorageProvider = this.getAttribute("data-engine-or-storage-provider");
+            const methodType = this.getAttribute("data-method-type");
+            const credentialId = this.getAttribute("data-credential-id");
+            const formId = this.getAttribute("data-form-id");
+            
+            saveCredential(engineOrStorageProvider, methodType, credentialId, formId);
+        });
+
+
+        // Increase count
+        credentialCount += 1;
+        
+
+
+    });
+
+
+
+
+    // Add listener to confirm delete button
+    document.getElementById(`confirm-delete`).addEventListener("click", function(event){
+
+        const formId = this.getAttribute("data-form-id");
+        const credentialId = this.getAttribute("data-credential-id");
+    
+        const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`);
+        const confirmDeleteClose = document.getElementById("delete-credential-modal-close");
+        this.innerHTML = deletingData;
+
+        // Delete data
+        fetch (`/credentials/${credentialId}`, {
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"}
+        }).then(res => {
+
+            return res.json();
+
+        }).then(jsonData => {
+
+            console.log(jsonData)
+
+            if (jsonData.success){
+
+                this.innerHTML = "Confirm delete";
+
+                // BEGIN remove credential card
+                credentialFormContainer.classList.add("list-fade");
+                credentialFormContainer.style.opacity = '0';
+                setTimeout(() => credentialFormContainer.remove(), 1000);
+                // EMD remove credential card
+
+                confirmDeleteClose.click();
+                $.notify("Credential Deleted.", "success");
+
+            }else{
+
+                // error prompt here
+                this.innerHTML = "Confirm delete";
+                document.getElementById("delete-credential-error-notify").innerHTML = jsonData.message;
+            }
+
+        }).catch(err => {
+            
+            this.innerHTML = "Confirm delete";
+            console.log(err.message);
+            document.getElementById("delete-credential-error-notify").innerHTML = err.message;
+
+        });
+
+
+
+
+
+    });
+
+
+
+
+
+});
+
+
+loadFormFields = (engineOrStorageProvider, formId, credential, hasData) => {
+    const formContentDetailEl = document.getElementById(`form-${formId}-content-detail`);
+    
+    switch(engineOrStorageProvider) {
+
+        case "mysql":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "postgresql":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "mariadb":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "sqlite":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "mongodb":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "elasticsearch":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "redis":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "memcached":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "aws":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        case "azure":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        case "gcp":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        default:
+            console.log("error")
+          break;
+
+      }
+
 }
 
 
 
-const validateInput = () => {
+const loadCredentialTypeIntoSelectedOption = () => {
+    let content = "";
+
+    for (let type_ of manageCredentialTypes){
+        content += `<option value="${type_._id}">${type_.name}</option>`;
+    }
+
+    return content;
+}
+
+const loadStorageProviderIntoSelectedOption = () => {
+    let content = `<option value="0" selected disabled>--please choose--</option>`;
+
+    for (let provider of backUpStorageProvider.providers){
+        content += `<option value="${provider._id}">${provider.name}</option>`;
+    }
+
+    return content;
+}
+
+const loadEngineIntoSelectedOption = () => {
+    let content = `<option value="0" selected disabled>--please choose--</option>`;
+
+    for (let engine of databaseEngine.engines){
+        content += `<option value="${engine._id}">${engine.name}</option>`;
+    }
+
+    return content;
+}
+
+
+const loadManageCredentialRecord = () => {
+
+    // Start spinner
+    document.querySelector("#page-spinner").style.display = "none";
+
+    fetch("/credentials", {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+    }).then(res => {
+
+        if (res.status === 200){
+           return res.json();
+        }
+
+    }).then(jsonData => {
+
+        console.log(jsonData)
+        // Get data
+        manageCredentialTypes = jsonData.credential_types;
+        manageCredentials = jsonData.credentials;
+
+        for (let type_ of manageCredentialTypes){
+
+            if (type_._id === "database_engines"){
+                databaseEngine = type_;
+            }else if (type_._id === "storage_providers"){
+                backUpStorageProvider = type_;
+            }
+        }
+
+
+        for (let credentialData of manageCredentials){
+
+            displaySavedCredential(credentialCount, credentialData, false);
+
+            credentialCount += 1;
+        }
+
+
+    }).catch(error => {
+
+        console.log(error.message);
+
+    })
+}
+
+
+const loadDatabaseCredentialTemplate = (formId, credential, hasData=false) => {
+
+    const databaseName = hasData == true? credential.database_name : "";
+    const databaseHost = hasData == true? credential.database_host : "";
+    const databaseUser = hasData == true? credential.database_user : "";
+    const databasePassword = hasData == true? credential.database_password : "";
+    const databasePort = hasData == true? credential.database_port : "";
+    const credentialId = hasData == true? credential.credential_id : "";
+    const readOnly = hasData == true? "readonly" : "";
+
+    return `
+
+        <div  class="col-12 other-info">
+            <label for="database-name-${formId}" class="form-label"><strong>Database name</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="database-name-${formId}" value="${databaseName}" >
+            <p id="database-name-${formId}-error" style="color: red; display: none;">Database name required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="host-${formId}" class="form-label"><strong>Host</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="host-${formId}" value="${databaseHost}">
+            <p id="host-${formId}-error" style="color: red; display: none;">Host required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="port-${formId}" class="form-label"><strong>Port</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="port-${formId}" value="${databasePort}">
+            <p id="port-${formId}-error" style="color: red; display: none;">Port required</p>
+        </div>
+
+
+
+        <div  class="col-12 other-info">
+            <label for="username-${formId}" class="form-label"><strong>Username</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="username-${formId}" value="${databaseUser}">
+            <p id="username-${formId}-error" style="color: red; display: none;">Username required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="password-${formId}" class="form-label"><strong>Password</strong><span style="color: red;">*</span></label>
+            <input type="password" class="form-control" id="password-${formId}" value="${databasePassword}">
+            <p id="password-${formId}-error" style="color: red; display: none;">Password name required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="credential-identifier-${formId}" class="form-label"><strong>Credential Identifier</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" ${readOnly} id="credential-identifier-${formId}"  value="${credentialId}">
+            <p id="credential-identifier-${formId}-error" style="color: red; display: none;">Credential identifier required</p>
+        </div>
+    
+    `
+}
+
+
+const loadAWSStorageCredentialTemplate = (formId, credential, hasData=false) => {
+
+    const accessKeyId = hasData == true? credential.access_key_id : "";
+    const secretAccessKey = hasData == true? credential.secret_access_key : "";
+    const region = hasData == true? credential.region : "";
+    const bucketName = hasData == true? credential.bucket_name : "";
+    const keyOrDestination = hasData == true? credential.key_or_destination : "";
+    const credentialId = hasData == true? credential.credential_id : "";
+    const readOnly = hasData == true? "readonly" : "";
+
+    return `
+
+        <div  class="col-12 other-info">
+            <label for="access-key-id-${formId}" class="form-label"><strong>Access key ID</strong><span style="color: red;">*</span></label>
+            <input type="password" class="form-control" id="access-key-id-${formId}" value="${accessKeyId}">
+            <p id="access-key-id-${formId}-error" style="color: red; display: none;">Access key ID required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="secret-access-key-${formId}" class="form-label"><strong>Secret access key</strong><span style="color: red;">*</span></label>
+            <input type="password" class="form-control" id="secret-access-key-${formId}" value="${secretAccessKey}">
+            <p id="secret-access-key-${formId}-error" style="color: red; display: none;">Secret access key required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="region-${formId}" class="form-label"><strong>Region</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="region-${formId}" value="${region}">
+            <p id="region-${formId}-error" style="color: red; display: none;">Region required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="bucket-name-${formId}" class="form-label"><strong>S3 Bucket name</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="bucket-name-${formId}" value="${bucketName}">
+            <p id="bucket-name-${formId}-error" style="color: red; display: none;">Bucket name required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="key-or-destination-${formId}" class="form-label"><strong>Key/Destination</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="key-or-destination-${formId}" value="${keyOrDestination}">
+            <p id="key-or-destination-${formId}-error" style="color: red; display: none;">Key required</p>
+        </div>
+
+
+        <div  class="col-12 other-info">
+            <label for="credential-identifier-${formId}" class="form-label"><strong>Credential Identifier</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" ${readOnly} id="credential-identifier-${formId}"  value="${credentialId}">
+            <p id="credential-identifier-${formId}-error" style="color: red; display: none;">Credential identifier required</p>
+        </div>
+    
+    `
+}
+
+const validateInput = (engineOrStorageProvider, formId) => {
+
+    let isValid = true;
+    switch(engineOrStorageProvider) {
+    
+        case "mysql":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "postgresql":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "mariadb":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "sqlite":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "mongodb":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "elasticsearch":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "redis":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "memcached":
+            isValid = validateDatabaseInput(formId);
+          break;
+        case "aws":
+            isValid = validateAWSStorageInput(formId);
+          break;
+        case "azure":
+            isValid = validateAzureStorageInput(formId);
+          break;
+        case "gcp":
+            isValid = validateGCPStorageInput(formId);
+          break;
+        default:
+            console.log("error")
+            isValid = true;
+          break;
+
+      }
+
+
+      return isValid;
+
+}
+
+const validateDatabaseInput = (formId) => {
     let isValid = true;
 
-    // const licenseDescription = document.querySelector("#license-description").value;
-    const licenseName = document.querySelector("#license-name").value;
-    const version = document.querySelector("#version").value;
-    const typeOfLicense = document.querySelector("#type-of-license").value;
-    const licenseUrl = document.querySelector("#license-url").value;
-    const licenseAttributeHeading = document.querySelector("#license-attribute-heading").value;
-    const licenseAttribute = document.querySelectorAll("#license-attribute  option:checked");
-    
+    let credentialType = "";
+    let engineOrStorageProvider = "";
+    const databaseName = document.querySelector(`#database-name-${formId}`).value;
+    const host = document.querySelector(`#host-${formId}`).value;
+    const port = document.querySelector(`#port-${formId}`).value;
+    const username = document.querySelector(`#username-${formId}`).value;
+    const password = document.querySelector(`#password-${formId}`).value;
+    const credentialId = document.querySelector(`#credential-identifier-${formId}`).value;
+    const credentialTypeEl = document.querySelector(`#type-${formId}`);
+    const engineOrStorageProviderEl = document.querySelector(`#engine-or-storage-provider-${formId}`);
 
-    const licenseAttributeList = [];
-    for (let option of licenseAttribute) {
-        licenseAttributeList.push(option.value);
+
+    // form data
+    credentialData = {
+        database_name: databaseName,
+        database_host: host,
+        database_port: port,
+        database_user: username,
+        database_password: password,
+        credential_id: credentialId
     }
 
 
 
-    const licenseNameErrorEl = document.querySelector("#license-name-error");
-    const versionErrorEl = document.querySelector("#version-error");
-    const typeOfLicenseErrorEl = document.querySelector("#type-of-license-error");
-    const licenseUrlErrorEl = document.querySelector("#license-url-error");
-    const licenseAttributeHeadingErrorEl = document.querySelector("#license-attribute-heading-error");
-    const licenseAttributeErrorEl = document.querySelector("#license-attribute-error");
-    const licenseCompatibleWithErrorEl = document.querySelector("#license-compatible-with-error");
-    // const descriptionErrorEl = document.querySelector("#description-error");
-    const licenseImageErrorEl = document.querySelector("#license-image-error");
-
-    if (licenseName === ""){
-        isValid = false;
-        licenseNameErrorEl.style.display = "block";
-    }else{
-        licenseNameErrorEl.style.display = "none";
-    }
-
-    if (version === ""){
-        isValid = false;
-        versionErrorEl.style.display = "block";
-    }else{
-        versionErrorEl.style.display = "none";
-    }
-
-    if (typeOfLicense === ""){
-        isValid = false;
-        typeOfLicenseErrorEl.style.display = "block";
-    }else{
-        typeOfLicenseErrorEl.style.display = "none";
+    if(credentialTypeEl){
+        credentialType = credentialTypeEl.value;
+        
+        if (credentialType === ""){
+            document.getElementById(`type-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`type-${formId}-error`).style.display = "none";
+        }
     }
 
 
-    if (licenseUrl === ""){
-        isValid = false;
-        licenseUrlErrorEl.style.display = "block";
-    }else{
-        licenseUrlErrorEl.style.display = "none";
-    }
-
-    if (licenseAttributeHeading === ""){
-        isValid = false;
-        licenseAttributeHeadingErrorEl.style.display = "block";
-    }else{
-        licenseAttributeHeadingErrorEl.style.display = "none";
+    if(engineOrStorageProviderEl){
+        engineOrStorageProvider = engineOrStorageProviderEl.value;
+        
+        if (engineOrStorageProvider === ""){
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "none";
+        }
     }
 
 
-    if (licenseAttributeList){
-        licenseAttributeErrorEl.style.display = "none";
-    }else{
+    if (databaseName === ""){
+        document.getElementById(`database-name-${formId}-error`).style.display = "block";
         isValid = false;
-        licenseAttributeErrorEl.style.display = "block";
+    }else{
+        document.getElementById(`database-name-${formId}-error`).style.display = "none";
     }
 
-    // if (licenseDescription === ""){
-    //     isValid = false;
-    //     descriptionErrorEl.style.display = "block";
-    // }else{
-    //     descriptionErrorEl.style.display = "none";
-    // }
-
-    if (fileData){
-        licenseImageErrorEl.style.display = "none";
-    }else{
+    if (host === ""){
+        document.getElementById(`host-${formId}-error`).style.display = "block";
         isValid = false;
-        licenseImageErrorEl.style.display = "block";       
+    }else{
+        document.getElementById(`host-${formId}-error`).style.display = "none";
+    }
+
+    if (port === ""){
+        document.getElementById(`port-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`port-${formId}-error`).style.display = "none";
+    }
+
+    if (username === ""){
+        document.getElementById(`username-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`username-${formId}-error`).style.display = "none";
+    }
+
+    if (password === ""){
+        document.getElementById(`password-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`password-${formId}-error`).style.display = "none";
+    }
+
+    if (credentialId === ""){
+        document.getElementById(`credential-identifier-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`credential-identifier-${formId}-error`).style.display = "none";
+    }
+
+    return isValid;
+
+}
+
+
+
+const validateAWSStorageInput = (formId) => {
+    let isValid = true;
+
+    let credentialType = "";
+    let engineOrStorageProvider = "";
+    const accessKeyId = document.querySelector(`#access-key-id-${formId}`).value;
+    const secretAccessKey = document.querySelector(`#secret-access-key-${formId}`).value;
+    const region = document.querySelector(`#region-${formId}`).value;
+    const bucketName = document.querySelector(`#bucket-name-${formId}`).value;
+    const keyOrDestination = document.querySelector(`#key-or-destination-${formId}`).value;
+    const credentialId = document.querySelector(`#credential-identifier-${formId}`).value;
+    const credentialTypeEl = document.querySelector(`#type-${formId}`);
+    const engineOrStorageProviderEl = document.querySelector(`#engine-or-storage-provider-${formId}`);
+
+
+    // format data
+    credentialData = {
+        access_key_id: accessKeyId,
+        secret_access_key: secretAccessKey,
+        region: region,
+        bucket_name: bucketName,
+        key_or_destination: keyOrDestination,
+        credential_id: credentialId
+    }
+
+
+
+    if(credentialTypeEl){
+        credentialType = credentialTypeEl.value;
+        
+        if (credentialType === ""){
+            document.getElementById(`type-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`type-${formId}-error`).style.display = "none";
+        }
+    }
+
+
+    if(engineOrStorageProviderEl){
+        engineOrStorageProvider = engineOrStorageProviderEl.value;
+        
+        if (engineOrStorageProvider === ""){
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "none";
+        }
+    }
+
+
+    if (accessKeyId === ""){
+        document.getElementById(`access-key-id-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`access-key-id-${formId}-error`).style.display = "none";
+    }
+
+    if (secretAccessKey === ""){
+        document.getElementById(`secret-access-key-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`secret-access-key-${formId}-error`).style.display = "none";
+    }
+
+    if (region === ""){
+        document.getElementById(`region-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`region-${formId}-error`).style.display = "none";
+    }
+
+    if (bucketName === ""){
+        document.getElementById(`bucket-name-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`bucket-name-${formId}-error`).style.display = "none";
+    }
+
+    if (keyOrDestination === ""){
+        document.getElementById(`key-or-destination-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`key-or-destination-${formId}-error`).style.display = "none";
+    }
+
+    if (credentialId === ""){
+        document.getElementById(`credential-identifier-${formId}-error`).style.display = "block";
+        isValid = false;
+    }else{
+        document.getElementById(`credential-identifier-${formId}-error`).style.display = "none";
     }
 
 
 
     return isValid;
+
 }
 
 
-const formatAddTag = (key="", value="") => {
-    licenseTagAddCount += 1;
-    const divEl = document.createElement('div')
-    const content = `
-        <div style="display: inline-block;" class="col-3 other-info">
-        <input type="text"  placeholder="Enter Key" class="form-control" value="${key}" id="license-tags-${licenseTagAddCount}-key">
-        </div>
 
-        <div style="display: inline-block;" class="col-7 other-info">
-        <input type="text" class="form-control" placeholder="Enter Value" value="${value}" id="license-tags-${licenseTagAddCount}-value">
-        </div>
-        <div style="display: inline-block;" class="col-1 other-info">
-        <button type="button" data-tag-id="license-tags-${licenseTagAddCount}" class="btn btn-outline-danger license-tags-delete">X</button>
-        </div>
-    `
+const validateAzureStorageInput = () => {
 
-    divEl.setAttribute('id', `license-tags-${licenseTagAddCount}`);
-    divEl.setAttribute('data-tag-id', `license-tags-${licenseTagAddCount}`);
-    divEl.setAttribute('class', `col-12 other-info license-tags`);
-    divEl.innerHTML = content;
-    const licenseTagsContainerEl = document.getElementById("license-tags-container")
-    licenseTagsContainerEl.appendChild(divEl);
-    deleteLicenseTag();
+
+
 }
 
-const deleteLicenseTag = () => {
-    const licenseTagsDeleteEl = document.querySelectorAll(".license-tags-delete");
-    licenseTagsDeleteEl.forEach(element => {
+const validateGCPStorageInput = () => {
 
-        element.onclick = function(event){
-            const tagId = element.getAttribute("data-tag-id");
-            document.querySelector(`#${tagId}`).remove();
-        }
 
-    });
+
 }
 
 
-const getLicenseTagContent = () => {
 
-    const licenseTags = [];
-    
-    const licenseTagsEl = document.querySelectorAll(".license-tags");
-    licenseTagsEl.forEach(element => {
-        const tagId = element.getAttribute("data-tag-id");
-        let key = document.querySelector(`#${tagId}-key`).value;
-        const value = document.querySelector(`#${tagId}-value`).value;
+const saveCredential = (engineOrStorageProvider, methodType, credentialId, formId) => {
+    const btnSaveEl = document.getElementById(`btn-save-credential-${formId}`);
 
-        if (value && key){
+
+    // Validate form input
+    if (validateInput(engineOrStorageProvider, formId)){
+
+        btnSaveEl.innerHTML = savingData;
+        const errorContainerEl = document.querySelector(`#error-container-${formId}`);
+        const errorEl = document.querySelector(`#error-p-${formId}`);
+        errorContainerEl.style.display = "none";
+        let engineOrStorageProviderData = {}
+
+
+        
+        let url = `/credentials/${credentialId}`;
+        let data = {};
+
+        if (methodType === "POST"){
+
+            url = "/credentials";
+
+
+            const credentialType = document.querySelector(`#type-${formId}`).value;
+            const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
+            
+            if (credentialType === "database_engines"){
+
+                for (let engine of databaseEngine.engines){
+                    if (engineOrStorageProvider === engine._id){
+                        engineOrStorageProviderData = engine;
+                    }    
+                }
+
+            } else if (credentialType === "storage_providers"){
+
+                for (let provider of backUpStorageProvider.providers){
+                    if (engineOrStorageProvider === provider._id){
+                        engineOrStorageProviderData = provider;
+                    }    
+                }
+
+            }
 
             // format data
-            key = key.replace(":", "").trim();
-            const data = {};
-            data[key] = value.trim();
+            data = {
 
-            licenseTags.push(data);
+                _id: credentialData.credential_id,
+                type: credentialType,
+                engine_or_storage_provider: engineOrStorageProviderData,
+                credential: credentialData
+            };
 
+
+        }else {
+
+            // format data
+            data = {
+                credential: credentialData
+            };
         }
 
 
-    })
 
-    return licenseTags;
+
+
+        // Save data
+        fetch (url, {
+            method: methodType,
+            body: JSON.stringify(data),
+            headers: {"Content-Type": "application/json"}
+        }).then(res => {
+
+            return res.json();
+
+        }).then(jsonData => {
+
+            console.log(jsonData)
+
+            if (jsonData.success){
+
+                displaySavedCredential(formId, jsonData.credential_data, true)
+                btnSaveEl.innerHTML = "Save Changes";
+                $.notify("Credential Saved.", "success");
+
+            }else{
+
+                // error prompt here
+                errorEl.innerHTML = jsonData.message
+                errorContainerEl.style.display = "block";
+                btnSaveEl.innerHTML = "Save Changes";
+            }
+
+        }).catch(err => {
+            
+            btnSaveEl.innerHTML = "Save Changes";
+            console.log(err.message);
+            errorEl.innerHTML = err.message;
+            errorContainerEl.style.display = "block";
+
+        });
+
+
+
+    }
+
 }
 
 
-const deleteLicense = () => {
-    console.log("worl")
-    const deleteBtnEls = document.querySelectorAll(".delete-license");
-    // loop over all delete button
-    // and event listener to it
-    deleteBtnEls.forEach(element => {
-
-      element.addEventListener("click", function(event){
+const displaySavedCredential = (formId, credential, performReplace=false) => {
 
 
-        const eventId = this.getAttribute("data-id");
-        const licenseName = this.getAttribute("data-license-name");
-        const licenseVersion = this.getAttribute("data-license-version");
-        console.log(licenseName);
+    const divEl = document.createElement("div");
+    divEl.setAttribute("class", "col-lg-12");
+    divEl.setAttribute("data-form-id", formId);
+    divEl.setAttribute("id", `credential-form-container-${formId}`);
+    divEl.setAttribute("data-engine-or-storage-provider-name", credential.engine_or_storage_provider.name);
 
-        document.getElementById("delete-license-name").innerHTML=`license: ${licenseName}, version: ${licenseVersion}`;
+    console.log(credential)
+    divEl.innerHTML = `
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${credential.engine_or_storage_provider.name}</h5>
+
+                    <form id="credential-form-${formId}" style="display: block;" data-form-id="${formId}" class="form" action="#" data-method-type="PUT" data-credential-id="${credential._id}" data-engine-or-storage-provider="${credential.engine_or_storage_provider._id}">
+
+                        <div class="col-12 other-info">
+                            <img height="120" src="/static/img/${credential.engine_or_storage_provider.image}" />
+                        </div>
+
+
+
+
+
+                        <div id="form-${formId}-content-detail">  
+
+
+
+
+                        
+                        </div>
+
+
+
+                        <div>
+                            <button style="float: right;" id="btn-save-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}"  type="submit" class="btn btn-primary">Save Changes</button>
+                            <button style="float: right; margin-right: 5px;" type="button" id="btn-delete-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}" data-bs-toggle="modal" data-bs-target="#delete-credential-modal" class="btn btn-danger">Delete</button>
+                        </div>
+
+                    </form>
+
+
+                    <div id="error-container-${formId}" style="display: none; margin-top:20px;" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <p id="error-p-${formId}" ></p>
+                    </div>
+
+                </div>
+
+            </div>
+    `;
+
+
+    if (performReplace){
+        // get handle to element to replace
+        const oldChild = document.querySelector(`#credential-form-container-${formId}`);
+        
+        // get handle to the parent node
+        const parentNode = oldChild.parentNode;
+        
+        parentNode.replaceChild(divEl, oldChild);
+    }else{
+        document.getElementById("credentials-container").appendChild(divEl);    
+    }
+
+
+
+
+    loadFormFields(credential.engine_or_storage_provider._id, formId, credential.credential, true);
+
+
+
+
+    // Add listener to form
+    document.getElementById(`credential-form-${formId}`).addEventListener("submit", function(event){
+        event.preventDefault();
+        const engineOrStorageProvider = this.getAttribute("data-engine-or-storage-provider");
+        const methodType = this.getAttribute("data-method-type");
+        const credentialId = this.getAttribute("data-credential-id");
+        const formId = this.getAttribute("data-form-id");
+        
+        saveCredential(engineOrStorageProvider, methodType, credentialId, formId);
+    });
+
+
+
+    // Add listener to delete button
+    document.getElementById(`btn-delete-credential-${formId}`).addEventListener("click", function(event){
+
+        const formId = this.getAttribute("data-form-id");
+        const credentialId = this.getAttribute("data-credential-id");
+    
+        const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`)
+        const engineOrStorageProviderName = credentialFormContainer.getAttribute("data-engine-or-storage-provider-name");
+
+        
+        const content = `<p>Are you sure, you want to delete the selected ${engineOrStorageProviderName} credentials with ID (${credentialId})</p>`;
+        document.getElementById("delete-body-modal").innerHTML=`${content}`;
+
         const deleteBtnEl = document.getElementById("confirm-delete");
-        deleteBtnEl.setAttribute("data-license-name", licenseName);
-        deleteBtnEl.setAttribute("data-id", eventId);
-      });
+        deleteBtnEl.setAttribute("data-credential-id", credentialId);
+        deleteBtnEl.setAttribute("data-form-id", formId);
 
     });
-  }
 
-const sanitizeText = (text) => {
-    return text.replace(/["${}]/g,"");
+
+
 }
+
+
 
 
