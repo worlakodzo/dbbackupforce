@@ -13,16 +13,86 @@ const deletingData = `<span class="spinner-border spinner-border-sm" role="statu
 
 
 document.addEventListener("DOMContentLoaded", function(event){
+    const jobFormEl = document.querySelector("#job-form");
+    const jobListContainerEl = document.querySelector("#job-list-container");
 
-    loadBasicInfo();
+    // load create or update job detail
+    if(jobFormEl){
 
-    // Add listener to form
-    document.getElementById(`job-form`).addEventListener("submit", function(event){
-        event.preventDefault();
-        const methodType = this.getAttribute("data-method-type");
-        const jobId = this.getAttribute("data-job-id");
-        saveJob(methodType, jobId);
-    });
+        const methodType = jobFormEl.getAttribute("data-method-type");
+        loadBasicInfo(methodType);
+
+        // Add listener to form
+        document.getElementById(`job-form`).addEventListener("submit", function(event){
+            event.preventDefault();
+            const methodType = this.getAttribute("data-method-type");
+            const jobId = this.getAttribute("data-job-id");
+            saveJob(methodType, jobId);
+        });
+
+    }
+
+    // load list of job
+    if(jobListContainerEl){
+        loadJobRecord()
+
+        // Add listener to confirm delete button
+        document.getElementById(`confirm-delete`).addEventListener("click", function(event){
+
+
+            const jobId = this.getAttribute("data-id");
+            const jobRowEl = document.getElementById(`job-list-row-id-${jobId}`);
+            const confirmDeleteClose = document.getElementById("delete-job-modal-close");
+            this.innerHTML = deletingData;
+
+
+            // Delete data
+            fetch (`/jobs/${jobId}`, {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"}
+            }).then(res => {
+
+                return res.json();
+
+            }).then(jsonData => {
+
+                console.log(jsonData);
+
+                if (jsonData.success){
+
+                    this.innerHTML = "Confirm delete";
+
+                    // BEGIN remove job card
+                    jobRowEl.classList.add("list-fade");
+                    jobRowEl.style.opacity = '0';
+                    setTimeout(() => jobRowEl.remove(), 1000);
+                    // EMD remove job card
+
+                    confirmDeleteClose.click();
+                    $.notify("Job Deleted.", "success");
+
+                }else{
+                    // error prompt here
+                    this.innerHTML = "Confirm delete";
+                    document.getElementById("delete-job-error-notify").innerHTML = jsonData.message;
+                }
+
+            }).catch(err => {
+                
+                this.innerHTML = "Confirm delete";
+                console.log(err.message);
+                document.getElementById("delete-job-error-notify").innerHTML = err.message;
+
+            });
+
+
+
+
+
+        });
+
+    }
+
 
 
 
@@ -30,39 +100,7 @@ document.addEventListener("DOMContentLoaded", function(event){
 
 
 
-
-const loadCredentialTypeIntoSelectedOption = () => {
-    let content = "";
-
-    for (let type_ of manageCredentialTypes){
-        content += `<option value="${type_._id}">${type_.name}</option>`;
-    }
-
-    return content;
-}
-
-const loadStorageProviderIntoSelectedOption = () => {
-    let content = `<option value="0" selected disabled>--please choose--</option>`;
-
-    for (let provider of backUpStorageProvider.providers){
-        content += `<option value="${provider._id}">${provider.name}</option>`;
-    }
-
-    return content;
-}
-
-const loadEngineIntoSelectedOption = () => {
-    let content = `<option value="0" selected disabled>--please choose--</option>`;
-
-    for (let engine of databaseEngine.engines){
-        content += `<option value="${engine._id}">${engine.name}</option>`;
-    }
-
-    return content;
-}
-
-
-const loadBasicInfo = () => {
+const loadBasicInfo = (methodType) => {
 
     // Start spinner
     document.querySelector("#page-spinner").style.display = "block";
@@ -123,6 +161,10 @@ const loadBasicInfo = () => {
         document.querySelector("#page-spinner").style.display = "none";
         document.querySelector("#job-form").style.display = "block";
 
+        if(methodType === "PUT"){
+            loadJobForUpdate();
+        }
+
 
 
     }).catch(error => {
@@ -131,6 +173,117 @@ const loadBasicInfo = () => {
 
     })
 }
+
+
+const loadJobRecord = () => {
+
+    // Start spinner
+    const jobListContainerEl = document.querySelector("#job-list-container");
+    jobListContainerEl.style.display = "none";
+    const spinnerEl = document.querySelector("#spinner-content");
+    spinnerEl.innerHTML = pageLoading;
+
+    fetch("/jobs", {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+    }).then(res => {
+
+        if (res.status === 200){
+           return res.json();
+        }
+
+    }).then(jsonData => {
+
+        console.log(jsonData.jobs);
+        displayTableContent(jsonData.jobs);
+        deleteJob();
+        jobListContainerEl.style.display = "block";
+        spinnerEl.innerHTML = "";
+
+    }).catch(error => {
+
+        console.log(error.message);
+
+    })
+}
+
+const loadJobForUpdate = () => {
+
+    // Start spinner
+    document.querySelector("#page-spinner").style.display = "block";
+    const jobFormEl = document.querySelector("#job-form");
+    jobFormEl.style.display = "none";
+    const jobId = jobFormEl.getAttribute("data-job-id");
+
+
+    fetch(`/jobs/${jobId}`, {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+    }).then(res => {
+
+        if (res.status === 200){
+           return res.json();
+        }
+
+    }).then(jsonData => {
+
+        console.log(jsonData.job);
+        displaySavedJob(jsonData.job);
+
+        // Update  
+        document.querySelector("#page-spinner").style.display = "none";
+        document.querySelector("#job-form").style.display = "block";
+
+    }).catch(error => {
+
+        console.log(error.message);
+
+    })
+}
+
+
+
+const displayTableContent = (data) => {
+
+    let content = "";
+    let count = 1;
+    for(let job of data){
+        content += formatUserData(job, count)
+        count += 1;
+    }
+
+    // update table content
+    if (data.length){
+        document.querySelector("#job-list-table-body").innerHTML = content;
+    }else{
+        // no data found
+    }
+
+}
+
+
+const formatUserData = (job, count) => {
+
+    return `
+            <tr id="job-list-row-id-${job._id}" class="list-fade">
+                <td>${count}</td>
+                <td>${job.job_name}</td>
+                <td>${job.job_start_time}</td>
+                <td>${job.interval_value} ${job.interval_type}</td>
+                <td>${job.database_engine.engine_or_storage_provider.name}</td>
+                <td>${job.storage_provider.engine_or_storage_provider.storage_name}</td>
+
+                <td style="float: right">
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <a type="button" class="btn btn-primary" href="/job_edit/${job._id}"><i class="ri-edit-box-line"></i></a>
+                        <a type="button" data-id="${job._id}"  data-job-name="${job.job_name}" data-bs-toggle="modal" data-bs-target="#delete-job-modal" class="btn btn-danger delete-job"><i class="bx bxs-trash-alt"></i></a>
+                    </div>
+                </td>
+
+            </tr>
+    `
+}
+
 
 
 const validateInput = () => {
@@ -144,10 +297,7 @@ const validateInput = () => {
     const intervalType = document.querySelector(`#interval-type`).value;
     const intervalValue = document.querySelector(`#interval-value`).value;
     const databaseCredentialId = document.querySelector(`#database-credential-id`).value;
-    const backupStorageProviderCredentialId = document.querySelector(`#backup-storage-provider-credential-id`);
-
-
-    console.log(jobStartTime);
+    const backupStorageProviderCredentialId = document.querySelector(`#backup-storage-provider-credential-id`).value;
 
 
     // form data
@@ -168,13 +318,6 @@ const validateInput = () => {
         isValid = false;
     }else{
         document.getElementById(`job-name-error`).style.display = "none";
-    }
-
-    if (description === ""){
-        document.getElementById(`description`).style.display = "block";
-        isValid = false;
-    }else{
-        document.getElementById(`description`).style.display = "none";
     }
 
 
@@ -296,113 +439,43 @@ const saveJob = (methodType, jobId) => {
 }
 
 
-const displaySavedJob = (formId, credential, performReplace=false) => {
+const deleteJob = () => {
 
+    const deleteEls = document.querySelectorAll(".delete-job");
+    deleteEls.forEach(element => {
 
-    const divEl = document.createElement("div");
-    divEl.setAttribute("class", "col-lg-12");
-    divEl.setAttribute("data-form-id", formId);
-    divEl.setAttribute("id", `credential-form-container-${formId}`);
-    divEl.setAttribute("data-engine-or-storage-provider-name", credential.engine_or_storage_provider.name);
+        element.addEventListener("click", function(event){
 
-    console.log(credential)
-    divEl.innerHTML = `
-
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">${credential.engine_or_storage_provider.name}</h5>
-
-                    <form id="credential-form-${formId}" style="display: block;" data-form-id="${formId}" class="form" action="#" data-method-type="PUT" data-credential-id="${credential._id}" data-engine-or-storage-provider="${credential.engine_or_storage_provider._id}">
-
-                        <div class="col-12 other-info">
-                            <img height="120" src="/static/img/${credential.engine_or_storage_provider.image}" />
-                        </div>
-
-
-
-
-
-                        <div id="form-${formId}-content-detail">  
-
-
-
-
-                        
-                        </div>
-
-
-
-                        <div>
-                            <button style="float: right;" id="btn-save-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}"  type="submit" class="btn btn-primary">Save Changes</button>
-                            <button style="float: right; margin-right: 5px;" type="button" id="btn-delete-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}" data-bs-toggle="modal" data-bs-target="#delete-credential-modal" class="btn btn-danger">Delete</button>
-                        </div>
-
-                    </form>
-
-
-                    <div id="error-container-${formId}" style="display: none; margin-top:20px;" class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <p id="error-p-${formId}" ></p>
-                    </div>
-
-                </div>
-
-            </div>
-    `;
-
-
-    if (performReplace){
-        // get handle to element to replace
-        const oldChild = document.querySelector(`#credential-form-container-${formId}`);
-        
-        // get handle to the parent node
-        const parentNode = oldChild.parentNode;
-        
-        parentNode.replaceChild(divEl, oldChild);
-    }else{
-        document.getElementById("credentials-container").appendChild(divEl);    
-    }
-
-
-
-
-    loadFormFields(credential.engine_or_storage_provider._id, formId, credential.credential, true);
-
-
-
-
-    // Add listener to form
-    document.getElementById(`credential-form-${formId}`).addEventListener("submit", function(event){
-        event.preventDefault();
-        const engineOrStorageProvider = this.getAttribute("data-engine-or-storage-provider");
-        const methodType = this.getAttribute("data-method-type");
-        const credentialId = this.getAttribute("data-credential-id");
-        const formId = this.getAttribute("data-form-id");
-        
-        saveCredential(engineOrStorageProvider, methodType, credentialId, formId);
-    });
-
-
-
-    // Add listener to delete button
-    document.getElementById(`btn-delete-credential-${formId}`).addEventListener("click", function(event){
-
-        const formId = this.getAttribute("data-form-id");
-        const credentialId = this.getAttribute("data-credential-id");
+            const jobId = this.getAttribute("data-id");
+            const jobName = this.getAttribute("data-job-name");
     
-        const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`)
-        const engineOrStorageProviderName = credentialFormContainer.getAttribute("data-engine-or-storage-provider-name");
-
+            
+            const content = `<p>Are you sure, you want to delete the selected job (${jobName})</p>`;
+            document.getElementById("delete-job-content").innerHTML = `${content}`;
+            
+            
+            const deleteBtnEl = document.getElementById("confirm-delete");
+            deleteBtnEl.setAttribute("data-job-name", jobName);
+            deleteBtnEl.setAttribute("data-id", jobId);
+    
+        });
         
-        const content = `<p>Are you sure, you want to delete the selected ${engineOrStorageProviderName} credentials with ID (${credentialId})</p>`;
-        document.getElementById("delete-body-modal").innerHTML=`${content}`;
-
-        const deleteBtnEl = document.getElementById("confirm-delete");
-        deleteBtnEl.setAttribute("data-credential-id", credentialId);
-        deleteBtnEl.setAttribute("data-form-id", formId);
-
     });
 
 
+}
+
+
+const displaySavedJob = (data) => {
+
+    document.getElementById("job-name").value = data.job_name;
+    document.getElementById("description").value = data.description;
+    document.getElementById("enable-automatic-backed-up").checked = data.enable_automatic_backed_up;
+    document.getElementById("job-start-time").value = data.job_start_time;
+    document.getElementById("interval-type").value = data.interval_type;
+    document.getElementById("interval-value").value = data.interval_value;
+    document.getElementById("database-credential-id").value = data.database_credential_id;
+    document.getElementById("backup-storage-provider-credential-id").value = data.backup_storage_provider_credential_id;
 
 }
 

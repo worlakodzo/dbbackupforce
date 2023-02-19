@@ -23,7 +23,7 @@
 
     <!--END spinner-->
 
-    <div id="user-list-container" class="row">
+    <div id="job-list-container" class="row">
       <div class="col-lg-12">
 
         <div class="card">
@@ -45,7 +45,7 @@
                   <th style="text-align: right;" scope="col">Action</th>
                 </tr>
               </thead>
-              <tbody id="user-list-table-body">
+              <tbody id="job-list-table-body">
 
 
               </tbody>
@@ -58,26 +58,26 @@
 
     </div>
 
-    <!--BEGIN delete user modal-->
-    <div class="modal fade" id="delete-user-modal" tabindex="-1">
+    <!--BEGIN delete job modal-->
+    <div class="modal fade" id="delete-job-modal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Confirm delete</h5>
-            <button type="button" id="delete-user-modal-close" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">Delete</h5>
+            <button type="button" id="delete-job-modal-close" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div id="delete-user-content" class="modal-body">
+          <div id="delete-job-content" class="modal-body">
           
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" id="confirm-delete" class="btn btn-danger">Delete</button>
+            <button type="button" id="confirm-delete" class="btn btn-danger">Confirm delete</button>
           </div>
 
-          <p style="color: red;" id="delete-user-error-notify"></p>
+          <p style="color: red;" id="delete-job-error-notify"></p>
         </div>
       </div>
-    </div><!--END delete user modal-->
+    </div><!--END delete job modal-->
 
 
   </section>
