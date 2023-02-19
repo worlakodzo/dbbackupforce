@@ -10,7 +10,7 @@ const pageLoading =  `
 </a>
 `
 const savingData = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Saving...`;
-const deletingData = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Deletings...`;
+const deletingData = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Deleting...`;
 
 
 
@@ -101,52 +101,8 @@ document.addEventListener("DOMContentLoaded", function(event){
         document.getElementById(`engine-or-storage-provider-${credentialCount}`).addEventListener("change", function(event){
             const engineOrStorageProvider = this.value;
             const formId = this.getAttribute("data-form-id");
-            const formContentDetailEl = document.getElementById(`form-${formId}-content-detail`);
             document.getElementById(`credential-form-${formId}`).setAttribute("data-engine-or-storage-provider", engineOrStorageProvider);
-
-            switch(engineOrStorageProvider) {
-
-                case "mysql":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "postgresql":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "mariadb":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "sqlite":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "mongodb":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "elasticsearch":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "redis":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "memcached":
-                    formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId);
-                  break;
-                case "aws":
-                    formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId);
-                  break;
-                case "azure":
-                    formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId);
-                  break;
-                case "gcp":
-                    formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId);
-                  break;
-                default:
-                    console.log("error")
-                  break;
-
-              }
-
-
-
+            loadFormFields(engineOrStorageProvider, formId, {}, false);
         });
 
         // Add listener to delete button
@@ -176,7 +132,117 @@ document.addEventListener("DOMContentLoaded", function(event){
 
     });
 
+
+
+
+    // Add listener to confirm delete button
+    document.getElementById(`confirm-delete`).addEventListener("click", function(event){
+
+        const formId = this.getAttribute("data-form-id");
+        const credentialId = this.getAttribute("data-credential-id");
+    
+        const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`);
+        const confirmDeleteClose = document.getElementById("delete-credential-modal-close");
+        this.innerHTML = deletingData;
+
+        // Delete data
+        fetch (`/credentials/${credentialId}`, {
+            method: "DELETE",
+            headers: {"Content-Type": "application/json"}
+        }).then(res => {
+
+            return res.json();
+
+        }).then(jsonData => {
+
+            console.log(jsonData)
+
+            if (jsonData.success){
+
+                this.innerHTML = "Confirm delete";
+
+                // BEGIN remove credential card
+                credentialFormContainer.classList.add("list-fade");
+                credentialFormContainer.style.opacity = '0';
+                setTimeout(() => credentialFormContainer.remove(), 1000);
+                // EMD remove credential card
+
+                confirmDeleteClose.click();
+                $.notify("Credential Deleted.", "success");
+
+            }else{
+
+                // error prompt here
+                this.innerHTML = "Confirm delete";
+                document.getElementById("delete-credential-error-notify").innerHTML = jsonData.message;
+            }
+
+        }).catch(err => {
+            
+            this.innerHTML = "Confirm delete";
+            console.log(err.message);
+            document.getElementById("delete-credential-error-notify").innerHTML = err.message;
+
+        });
+
+
+
+
+
+    });
+
+
+
+
+
 });
+
+
+loadFormFields = (engineOrStorageProvider, formId, credential, hasData) => {
+    const formContentDetailEl = document.getElementById(`form-${formId}-content-detail`);
+    
+    switch(engineOrStorageProvider) {
+
+        case "mysql":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "postgresql":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "mariadb":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "sqlite":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "mongodb":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "elasticsearch":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "redis":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "memcached":
+            formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
+          break;
+        case "aws":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        case "azure":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        case "gcp":
+            formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
+          break;
+        default:
+            console.log("error")
+          break;
+
+      }
+
+}
 
 
 
@@ -242,6 +308,14 @@ const loadManageCredentialRecord = () => {
         }
 
 
+        for (let credentialData of manageCredentials){
+
+            displaySavedCredential(credentialCount, credentialData, false);
+
+            credentialCount += 1;
+        }
+
+
     }).catch(error => {
 
         console.log(error.message);
@@ -250,27 +324,35 @@ const loadManageCredentialRecord = () => {
 }
 
 
-const loadDatabaseCredentialTemplate = (formId) => {
+const loadDatabaseCredentialTemplate = (formId, credential, hasData=false) => {
+
+    const databaseName = hasData == true? credential.database_name : "";
+    const databaseHost = hasData == true? credential.database_host : "";
+    const databaseUser = hasData == true? credential.database_user : "";
+    const databasePassword = hasData == true? credential.database_password : "";
+    const databasePort = hasData == true? credential.database_port : "";
+    const credentialId = hasData == true? credential.credential_id : "";
+    const readOnly = hasData == true? "readonly" : "";
 
     return `
 
         <div  class="col-12 other-info">
             <label for="database-name-${formId}" class="form-label"><strong>Database name</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="database-name-${formId}">
+            <input type="text" class="form-control" id="database-name-${formId}" value="${databaseName}" >
             <p id="database-name-${formId}-error" style="color: red; display: none;">Database name required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="host-${formId}" class="form-label"><strong>Host</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="host-${formId}">
+            <input type="text" class="form-control" id="host-${formId}" value="${databaseHost}">
             <p id="host-${formId}-error" style="color: red; display: none;">Host required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="port-${formId}" class="form-label"><strong>Port</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="port-${formId}">
+            <input type="text" class="form-control" id="port-${formId}" value="${databasePort}">
             <p id="port-${formId}-error" style="color: red; display: none;">Port required</p>
         </div>
 
@@ -278,21 +360,21 @@ const loadDatabaseCredentialTemplate = (formId) => {
 
         <div  class="col-12 other-info">
             <label for="username-${formId}" class="form-label"><strong>Username</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="username-${formId}">
+            <input type="text" class="form-control" id="username-${formId}" value="${databaseUser}">
             <p id="username-${formId}-error" style="color: red; display: none;">Username required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="password-${formId}" class="form-label"><strong>Password</strong><span style="color: red;">*</span></label>
-            <input type="password" class="form-control" id="password-${formId}">
+            <input type="password" class="form-control" id="password-${formId}" value="${databasePassword}">
             <p id="password-${formId}-error" style="color: red; display: none;">Password name required</p>
         </div>
 
 
         <div  class="col-12 other-info">
-            <label for="identifier-${formId}" class="form-label"><strong>Credential identifier ID</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="credential-identifier-${formId}">
+            <label for="credential-identifier-${formId}" class="form-label"><strong>Credential Identifier</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" ${readOnly} id="credential-identifier-${formId}"  value="${credentialId}">
             <p id="credential-identifier-${formId}-error" style="color: red; display: none;">Credential identifier required</p>
         </div>
     
@@ -300,48 +382,56 @@ const loadDatabaseCredentialTemplate = (formId) => {
 }
 
 
-const loadAWSStorageCredentialTemplate = (formId) => {
+const loadAWSStorageCredentialTemplate = (formId, credential, hasData=false) => {
+
+    const accessKeyId = hasData == true? credential.access_key_id : "";
+    const secretAccessKey = hasData == true? credential.secret_access_key : "";
+    const region = hasData == true? credential.region : "";
+    const bucketName = hasData == true? credential.bucket_name : "";
+    const keyOrDestination = hasData == true? credential.key_or_destination : "";
+    const credentialId = hasData == true? credential.credential_id : "";
+    const readOnly = hasData == true? "readonly" : "";
 
     return `
 
         <div  class="col-12 other-info">
             <label for="access-key-id-${formId}" class="form-label"><strong>Access key ID</strong><span style="color: red;">*</span></label>
-            <input type="password" class="form-control" id="access-key-id-${formId}">
+            <input type="password" class="form-control" id="access-key-id-${formId}" value="${accessKeyId}">
             <p id="access-key-id-${formId}-error" style="color: red; display: none;">Access key ID required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="secret-access-key-${formId}" class="form-label"><strong>Secret access key</strong><span style="color: red;">*</span></label>
-            <input type="password" class="form-control" id="secret-access-key-${formId}">
+            <input type="password" class="form-control" id="secret-access-key-${formId}" value="${secretAccessKey}">
             <p id="secret-access-key-${formId}-error" style="color: red; display: none;">Secret access key required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="region-${formId}" class="form-label"><strong>Region</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="region-${formId}">
+            <input type="text" class="form-control" id="region-${formId}" value="${region}">
             <p id="region-${formId}-error" style="color: red; display: none;">Region required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="bucket-name-${formId}" class="form-label"><strong>S3 Bucket name</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="bucket-name-${formId}">
+            <input type="text" class="form-control" id="bucket-name-${formId}" value="${bucketName}">
             <p id="bucket-name-${formId}-error" style="color: red; display: none;">Bucket name required</p>
         </div>
 
 
         <div  class="col-12 other-info">
             <label for="key-or-destination-${formId}" class="form-label"><strong>Key/Destination</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="key-or-destination-${formId}">
+            <input type="text" class="form-control" id="key-or-destination-${formId}" value="${keyOrDestination}">
             <p id="key-or-destination-${formId}-error" style="color: red; display: none;">Key required</p>
         </div>
 
 
         <div  class="col-12 other-info">
-            <label for="credential-identifier-${formId}" class="form-label"><strong>Credential identifier ID</strong><span style="color: red;">*</span></label>
-            <input type="text" class="form-control" id="credential-identifier-${formId}">
+            <label for="credential-identifier-${formId}" class="form-label"><strong>Credential Identifier</strong><span style="color: red;">*</span></label>
+            <input type="text" class="form-control" id="credential-identifier-${formId}" ${readOnly} value="${credentialId}>
             <p id="credential-identifier-${formId}-error" style="color: red; display: none;">Credential identifier required</p>
         </div>
     
@@ -568,6 +658,7 @@ const validateGCPStorageInput = () => {
 }
 
 
+
 const saveCredential = (engineOrStorageProvider, methodType, credentialId, formId) => {
     const btnSaveEl = document.getElementById(`btn-save-credential-${formId}`);
 
@@ -578,7 +669,7 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
 
         const credentialType = document.querySelector(`#type-${formId}`).value;
         const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
-        const engineOrStorageProviderData = {}
+        let engineOrStorageProviderData = {}
 
 
         // Format url
@@ -590,13 +681,17 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
             if (credentialType === "database_engines"){
 
                 for (let engine of databaseEngine.engines){
-                    engineOrStorageProvider = engine;
+                    if (engineOrStorageProvider === engine._id){
+                        engineOrStorageProviderData = engine;
+                    }    
                 }
 
             } else if (credentialType === "storage_providers"){
 
-                for (let provider of backUpStorageProvider.providers){
-                    engineOrStorageProvider = provider;
+                for (let provider of backUpStorageProvider.providers._id){
+                    if (engineOrStorageProvider === provider){
+                        engineOrStorageProviderData = provider;
+                    }    
                 }
 
             }
@@ -613,9 +708,6 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
         };
 
 
-        console.log(data);
-
-
         // Save data
         fetch (url, {
             method: methodType,
@@ -627,11 +719,14 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
 
         }).then(jsonData => {
 
+            console.log(jsonData)
+
             if (jsonData.success){
 
+                displaySavedCredential(formId, jsonData.credential_data, true)
                 btnSaveEl.innerHTML = "Save Changes";
                 $.notify("Credential Saved.", "success");
-                
+
             }else{
 
                 // error prompt here
@@ -650,3 +745,93 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
     }
 
 }
+
+
+const displaySavedCredential = (formId, credential, performReplace=false) => {
+
+
+    const divEl = document.createElement("div");
+    divEl.setAttribute("class", "col-lg-12");
+    divEl.setAttribute("data-form-id", formId);
+    divEl.setAttribute("id", `credential-form-container-${formId}`);
+    divEl.setAttribute("data-engine-or-storage-provider-name", credential.engine_or_storage_provider.name);
+
+    console.log(credential)
+    divEl.innerHTML = `
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">${credential.engine_or_storage_provider.name}</h5>
+
+                    <form id="credential-form-${formId}" style="display: block;" data-form-id="${formId}" class="form" action="#" data-method-type="PUT" data-credential-id="${credential._id}" data-engine-or-storage-provider="${credential.engine_or_storage_provider._id}">
+
+                        <div class="col-12 other-info">
+                            <img height="120" src="/static/img/${credential.engine_or_storage_provider.image}" />
+                        </div>
+
+
+
+
+
+                        <div id="form-${formId}-content-detail">  
+
+
+
+
+                        
+                        </div>
+
+
+
+                        <div>
+                            <button style="float: right;" id="btn-save-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}"  type="submit" class="btn btn-primary">Save Changes</button>
+                            <button style="float: right; margin-right: 5px;" type="button" id="btn-delete-credential-${formId}" data-form-id="${formId}" data-credential-id="${credential._id}" data-bs-toggle="modal" data-bs-target="#delete-credential-modal" class="btn btn-danger">Delete</button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+    `;
+
+
+    if (performReplace){
+        // get handle to element to replace
+        const oldChild = document.querySelector(`#credential-form-container-${formId}`);
+        
+        // get handle to the parent node
+        const parentNode = oldChild.parentNode;
+        
+        parentNode.replaceChild(divEl, oldChild);
+    }else{
+        document.getElementById("credentials-container").appendChild(divEl);    
+    }
+
+
+    loadFormFields(credential.engine_or_storage_provider._id, formId, credential.credential, true);
+
+
+    // Add listener to delete button
+    document.getElementById(`btn-delete-credential-${formId}`).addEventListener("click", function(event){
+
+        const formId = this.getAttribute("data-form-id");
+        const credentialId = this.getAttribute("data-credential-id");
+    
+        const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`)
+        const engineOrStorageProviderName = credentialFormContainer.getAttribute("data-engine-or-storage-provider-name");
+
+        
+        const content = `<p>Are you sure, you want to delete the selected ${engineOrStorageProviderName} credentials with ID (${credentialId})</p>`;
+        document.getElementById("delete-body-modal").innerHTML=`${content}`;
+
+        const deleteBtnEl = document.getElementById("confirm-delete");
+        deleteBtnEl.setAttribute("data-credential-id", credentialId);
+        deleteBtnEl.setAttribute("data-form-id", formId);
+
+    });
+
+}
+
+
+
+

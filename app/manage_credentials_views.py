@@ -57,7 +57,7 @@ def credentials():
 
             return jsonify({
                 "success": True,
-                "credential": format_read_manage_credential_data(credential)
+                "credential_data": format_read_manage_credential_data(credential)
             }), 201
 
         else:
