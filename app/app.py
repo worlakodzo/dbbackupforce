@@ -2,6 +2,7 @@ from functools import wraps
 import os
 import sys
 import uuid
+from flask_cors import CORS
 from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
@@ -38,6 +39,15 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 app.register_blueprint(job)
 app.register_blueprint(mcredential)
+
+
+
+
+CORS(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
+
+
 
 metrics = PrometheusMetrics(app)
 
