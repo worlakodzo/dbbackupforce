@@ -162,6 +162,35 @@ def format_read_job_data(data):
         abort(500)
 
 
+
+@job.route('/jobbasicinfo')
+def job_basic_info():
+    status_code = 500
+    try:
+
+        # Get manage credentials
+        credentials_query = db.manage_credentials.find({}, {"credential": 0} )
+        credentials = [data for data in credentials_query]
+
+        # Get duration interval
+        duration_intervals_query = db.job_duration_interval_types.find({})
+
+        return jsonify({
+            "success": True,
+            "credentials": credentials,
+            "duration_interval_types": list(duration_intervals_query)
+        })
+      
+
+
+    except Exception as err:
+        print(str(err))
+        abort(status_code)
+
+
+
+
+
 """
 Error handle
 """
