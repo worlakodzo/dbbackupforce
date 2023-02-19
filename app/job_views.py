@@ -30,7 +30,14 @@ def job_edit(job_id:str):
     return render_template("jobs-create-and-update.html", job_id= job_id, action_type= "Edit" , method = "PUT")
 
 
-
+# {
+#     "_id": "default",
+#     "name": "Default",
+#     "storage_name": "Local Storage",
+#     "description": "",
+#     "type": "localhost",
+#     "image": "sp/localhost-storage.png"
+# },
 
 ###### API ######################
 
@@ -54,8 +61,18 @@ def jobs():
         elif request.method == "POST":
             body = request.get_json()
 
+            # Retrieve data
+            engine_res = db.manage_credentials.find_one({"_id": body["database_credential_id"]}, {"credential": 0})
+            provider_res = db.manage_credentials.find_one({"_id": body["backup_storage_provider_credential_id"]}, {"credential": 0})
+
+
+            body['database_engine'] = engine_res
+            body['storage_provider'] = provider_res
+
+
             # Save data
             res = db.jobs.insert_one(body)
+
 
             # Retrieve data
             job = db.jobs.find_one({"_id": res.inserted_id})
@@ -104,7 +121,14 @@ def job_details(job_id:str):
         elif request.method == "PUT":
 
             body = request.get_json()
-            # body = format_read_job_data(body)
+
+            # Retrieve data
+            engine_res = db.manage_credentials.find_one({"_id": body["database_credential_id"]}, {"credential": 0})
+            provider_res = db.manage_credentials.find_one({"_id": body["backup_storage_provider_credential_id"]}, {"credential": 0})
+
+
+            body['database_engine'] = engine_res
+            body['storage_provider'] = provider_res
 
             # Save data
             res = db.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": body})
@@ -160,6 +184,35 @@ def format_read_job_data(data):
     except Exception as err:
         print(err)
         abort(500)
+
+
+
+@job.route('/jobbasicinfo')
+def job_basic_info():
+    status_code = 500
+    try:
+
+        # Get manage credentials
+        credentials_query = db.manage_credentials.find({}, {"credential": 0} )
+        credentials = [data for data in credentials_query]
+
+        # Get duration interval
+        duration_intervals_query = db.job_duration_interval_types.find({})
+
+        return jsonify({
+            "success": True,
+            "credentials": credentials,
+            "duration_interval_types": list(duration_intervals_query)
+        })
+      
+
+
+    except Exception as err:
+        print(str(err))
+        abort(status_code)
+
+
+
 
 
 """

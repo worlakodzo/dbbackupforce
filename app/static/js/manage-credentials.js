@@ -238,13 +238,13 @@ loadFormFields = (engineOrStorageProvider, formId, credential, hasData) => {
         case "memcached":
             formContentDetailEl.innerHTML = loadDatabaseCredentialTemplate(formId, credential, hasData);
           break;
-        case "aws":
+        case "aws_s3":
             formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
           break;
-        case "azure":
+        case "azure_blobs":
             formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
           break;
-        case "gcp":
+        case "gcp_gcs":
             formContentDetailEl.innerHTML = loadAWSStorageCredentialTemplate(formId, credential, hasData);
           break;
         default:
@@ -271,7 +271,7 @@ const loadStorageProviderIntoSelectedOption = () => {
     let content = `<option value="0" selected disabled>--please choose--</option>`;
 
     for (let provider of backUpStorageProvider.providers){
-        content += `<option value="${provider._id}">${provider.name}</option>`;
+        content += `<option value="${provider._id}">${provider.name} (${provider.storage_name})</option>`;
     }
 
     return content;
@@ -478,13 +478,13 @@ const validateInput = (engineOrStorageProvider, formId) => {
         case "memcached":
             isValid = validateDatabaseInput(formId);
           break;
-        case "aws":
+        case "aws_s3":
             isValid = validateAWSStorageInput(formId);
           break;
-        case "azure":
+        case "azure_blobs":
             isValid = validateAzureStorageInput(formId);
           break;
-        case "gcp":
+        case "gcp_gcs":
             isValid = validateGCPStorageInput(formId);
           break;
         default:

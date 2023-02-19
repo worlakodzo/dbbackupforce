@@ -6,7 +6,7 @@ from flask_cors import CORS
 from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
-from default.db.load_default import load_default_manage_credential_type
+from default.db.load_default import load_default_manage_credential_type, load_default_job_duration_interval
 import logging
 from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
 
@@ -559,6 +559,7 @@ def unauthorized(error):
 if __name__ == "__main__":
 
     load_default_manage_credential_type(db)
+    load_default_job_duration_interval(db)
 
     app.run(host = "0.0.0.0", debug = True)
     

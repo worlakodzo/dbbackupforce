@@ -1,26 +1,26 @@
 [
     {
         "_id": "seconds",
-        "description": "Seconds"
+        "name": "Seconds"
     },{
         "_id": "minutes",
-        "description": "Minutes"
+        "name": "Minutes"
     },
     {
         "_id": "hours",
-        "description": "Hours"
+        "name": "Hours"
     },
     {
         "_id": "days",
-        "description": "Days"
+        "name": "Days"
     },
     {
         "_id": "weeks",
-        "description": "Weeks"
+        "name": "Weeks"
     },
     {
         "_id": "months",
-        "description": "Months"
+        "name": "Months"
     }
 
 ]

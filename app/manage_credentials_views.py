@@ -53,6 +53,7 @@ def credentials():
             # Get manage credential
             # check if id exist
             credential_old = db.manage_credentials.find_one({"_id": body["_id"]})
+            print("worlako")
             if credential_old:
 
                 os.environ['error_msg'] = f"Credential Indentifier ({body['_id']}) already exist."
@@ -61,7 +62,7 @@ def credentials():
 
             # Save data
             res = db.manage_credentials.insert_one(body)
-
+           
             # Retrieve data
             credential = db.manage_credentials.find_one({"_id": res.inserted_id})
 
