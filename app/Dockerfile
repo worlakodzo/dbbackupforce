@@ -15,7 +15,7 @@ RUN rm -rf static
 
 # Production enviroment
 FROM python:3.8-alpine
-
+RUN mkdir -p /var/backupforceplus/conf/
 
 WORKDIR /code
 

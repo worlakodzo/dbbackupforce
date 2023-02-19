@@ -5,24 +5,24 @@ import uuid
 from datetime import datetime
 from flask import Flask, render_template, redirect, session, request, jsonify, abort,url_for
 from  database import Database
+from default.db.load_default import load_default_manage_credential_type
 import logging
 from prometheus_client import Counter, Histogram, Summary, generate_latest, Gauge,REGISTRY, Gauge, MetricsHandler, Info, make_wsgi_app 
+
+
 
 # https://blog.viktoradam.net/2020/05/11/prometheus-flask-exporter/
 from prometheus_flask_exporter import PrometheusMetrics
 
+# https://stackoverflow.com/questions/6957396/url-building-with-flask-and-non-unique-handler-names/6958518
+from job_views import job
+from manage_credentials_views import mcredential
+
 
 from models import (
     create_db,
-    Asset,
     User,
-
-    STATUS_LIST,
-    CATEGORY_LIST,
     )
-
-
-error_msg = ""
 
 
 
@@ -36,6 +36,8 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # create flask application
 app = Flask(__name__)
+app.register_blueprint(job)
+app.register_blueprint(mcredential)
 
 metrics = PrometheusMetrics(app)
 
@@ -286,74 +288,6 @@ def create_user():
         abort(500)
 
 
-@app.route("/assets", methods=["GET"])
-def asset_list():
-    try:
-        # Retrieve all asset from database
-        asset_query = Asset.query.all()
-        assets = []
-
-        # loop over all asset object 
-        # and format the data
-        for asset in asset_query:
-            data = asset.format()
-
-            # get link of asset image
-            photo_link = os.path.join(app.config['UPLOAD_FOLDER'], asset.photo)
-            data['photo_link'] = f"/{photo_link}"
-
-
-            # add data to list of asset
-            assets.append(data)
-
-        return render_template("asset_list.html", assets= assets)
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route("/asset_add", methods=["GET", "POST"])
-def asset_add():
-    try:
-        pass
-    
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-@app.route("/asset_edit/<int:asset_id>", methods=["GET", "POST"])
-def asset_edit(asset_id):
-    try:
-        pass
-
-    # The code below will 
-    # execute when error occur
-    # in the try block
-    except Exception as err:
-        # print out err to 
-        # console for debug purpose
-        print(str(err))
-
-        # call to error handler
-        abort(500)
-
-
-
 
 ################## BEGIN API ###################################
 
@@ -422,6 +356,12 @@ def user_detail(id:str):
             # get link of user image
             photo_link = os.path.join(app.config['UPLOAD_FOLDER'], user_query['photo']['path'])
             user_query['photo_link'] = f"/{photo_link}"
+
+
+            print({
+                "success": True,
+                "data": user_query
+            })
 
             return jsonify({
                 "success": True,
@@ -500,7 +440,6 @@ def reset_password(body, user_query):
     db.users.update_one({"_id": user_query["_id"]}, {"$set": new_value})
 
 
-
 def update_user_data(body, user_query):
 
     new_value = {
@@ -525,6 +464,7 @@ def update_user_data(body, user_query):
 
     # Get new record and return new record
     return db.users.find_one({"_id": user_query["_id"]})
+
 
 def update_user_setting(body, user_query):
 
@@ -557,57 +497,58 @@ def disk_space_handler():
     return "Disk Space: 1 GB"
 
 
-# # Add a info metric with app version and deployment environment
-# app_info.info({"version": "1.0.1", "environment": "development"})
-
-
 @app.route('/metrics')
 def metrics_api():
     return generate_latest()
-
-
-# metrics.start_http_server(5001)
-
 
 
 """
 Error handle
 """
 
-@app.errorhandler(500)
+@mcredential.errorhandler(500)
 def internal_server_error(error):
+    error_msg = os.environ.get("error_msg", "")
     return jsonify({
         "success": False,
         "error": 500,
-        "message": "Internal Server Error"
+        "message": f"Internal Server Error, {error_msg}"
     }), 500
 
 
 @app.errorhandler(405)
 def method_not_allowed(error):
+    error_msg = os.environ.get("error_msg", "")
     return jsonify({
         "success": False,
         "error": 405,
-        "message": "Method Not Allowed"
+        "message": f"Method Not Allowed, {error_msg}"
     }), 405
 
 @app.errorhandler(404)
 def resource_not_found(error):
+    error_msg = os.environ.get("error_msg", "")
     return jsonify({
         "success": False,
         "error": 404,
-        "message": f"Resource Not Found {error_msg}"
+        "message": f"Resource Not Found, {error_msg}"
     }), 404
 
 @app.errorhandler(401)
 def unauthorized(error):
+    error_msg = os.environ.get("error_msg", "")
     return jsonify({
         "success": False,
         "error": 401,
-        "message": "Unauthorized"
+        "message": f"Unauthorized, {error_msg}"
     }), 401
 
 
-# UASSET 
+
+# backUPforceplus 
 if __name__ == "__main__":
+
+    load_default_manage_credential_type(db)
+
     app.run(host = "0.0.0.0", debug = True)
+    

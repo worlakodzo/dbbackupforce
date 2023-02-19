@@ -1,0 +1,26 @@
+[
+    {
+        "_id": "seconds",
+        "description": "Seconds"
+    },{
+        "_id": "minutes",
+        "description": "Minutes"
+    },
+    {
+        "_id": "hours",
+        "description": "Hours"
+    },
+    {
+        "_id": "days",
+        "description": "Days"
+    },
+    {
+        "_id": "weeks",
+        "description": "Weeks"
+    },
+    {
+        "_id": "months",
+        "description": "Months"
+    }
+
+]

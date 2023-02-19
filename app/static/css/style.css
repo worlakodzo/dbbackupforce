@@ -1258,3 +1258,13 @@ h6 {
   font-size: 13px;
   color: #012970;
 }
+
+
+/*-----------------------------------------------------------------------
+# Worlako Custom Sytle
+-------------------------------------------------------------------------*/
+.list-fade {
+    opacity: 1;
+    -webkit-transition: opacity 1000ms linear;
+    transition: opacity 1000ms linear;
+}
