@@ -69,6 +69,11 @@ document.addEventListener("DOMContentLoaded", function(event){
                             </div>
 
                         </form>
+
+                        <div id="error-container-${credentialCount}" style="display: none; margin-top: 100px;" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <p id="error-p-${credentialCount}" ></p>
+                        </div>
+
                     </div>
 
                 </div>
@@ -109,7 +114,13 @@ document.addEventListener("DOMContentLoaded", function(event){
         document.getElementById(`btn-delete-credential-${credentialCount}`).addEventListener("click", function(event){
             const credentialType = this.value;
             const formId = this.getAttribute("data-form-id");
-            document.getElementById(`credential-form-container-${formId}`).remove();
+            const credentialFormContainer = document.getElementById(`credential-form-container-${formId}`);
+
+            // BEGIN remove credential card
+            credentialFormContainer.classList.add("list-fade");
+            credentialFormContainer.style.opacity = '0';
+            setTimeout(() => credentialFormContainer.remove(), 1000);
+            // EMD remove credential card
         });
 
 
@@ -491,15 +502,19 @@ const validateInput = (engineOrStorageProvider, formId) => {
 const validateDatabaseInput = (formId) => {
     let isValid = true;
 
+    let credentialType = "";
+    let engineOrStorageProvider = "";
     const databaseName = document.querySelector(`#database-name-${formId}`).value;
     const host = document.querySelector(`#host-${formId}`).value;
     const port = document.querySelector(`#port-${formId}`).value;
     const username = document.querySelector(`#username-${formId}`).value;
     const password = document.querySelector(`#password-${formId}`).value;
     const credentialId = document.querySelector(`#credential-identifier-${formId}`).value;
-    const credentialType = document.querySelector(`#type-${formId}`).value;
-    const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
+    const credentialTypeEl = document.querySelector(`#type-${formId}`);
+    const engineOrStorageProviderEl = document.querySelector(`#engine-or-storage-provider-${formId}`);
 
+
+    // form data
     credentialData = {
         database_name: databaseName,
         database_host: host,
@@ -510,18 +525,28 @@ const validateDatabaseInput = (formId) => {
     }
 
 
-    if (credentialType === ""){
-        document.getElementById(`type-${formId}-error`).style.display = "block";
-        isValid = false;
-    }else{
-        document.getElementById(`type-${formId}-error`).style.display = "none";
+
+    if(credentialTypeEl){
+        credentialType = credentialTypeEl.value;
+        
+        if (credentialType === ""){
+            document.getElementById(`type-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`type-${formId}-error`).style.display = "none";
+        }
     }
 
-    if (engineOrStorageProvider === ""){
-        document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "block";
-        isValid = false;
-    }else{
-        document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "none";
+
+    if(engineOrStorageProviderEl){
+        engineOrStorageProvider = engineOrStorageProviderEl.value;
+        
+        if (engineOrStorageProvider === ""){
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "none";
+        }
     }
 
 
@@ -576,15 +601,19 @@ const validateDatabaseInput = (formId) => {
 const validateAWSStorageInput = (formId) => {
     let isValid = true;
 
+    let credentialType = "";
+    let engineOrStorageProvider = "";
     const accessKeyId = document.querySelector(`#access-key-id-${formId}`).value;
     const secretAccessKey = document.querySelector(`#secret-access-key-${formId}`).value;
     const region = document.querySelector(`#region-${formId}`).value;
     const bucketName = document.querySelector(`#bucket-name-${formId}`).value;
     const keyOrDestination = document.querySelector(`#key-or-destination-${formId}`).value;
     const credentialId = document.querySelector(`#credential-identifier-${formId}`).value;
-    const credentialType = document.querySelector(`#type-${formId}`).value;
-    const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
+    const credentialTypeEl = document.querySelector(`#type-${formId}`);
+    const engineOrStorageProviderEl = document.querySelector(`#engine-or-storage-provider-${formId}`);
 
+
+    // format data
     credentialData = {
         access_key_id: accessKeyId,
         secret_access_key: secretAccessKey,
@@ -592,6 +621,31 @@ const validateAWSStorageInput = (formId) => {
         bucket_name: bucketName,
         key_or_destination: keyOrDestination,
         credential_id: credentialId
+    }
+
+
+
+    if(credentialTypeEl){
+        credentialType = credentialTypeEl.value;
+        
+        if (credentialType === ""){
+            document.getElementById(`type-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`type-${formId}-error`).style.display = "none";
+        }
+    }
+
+
+    if(engineOrStorageProviderEl){
+        engineOrStorageProvider = engineOrStorageProviderEl.value;
+        
+        if (engineOrStorageProvider === ""){
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "block";
+            isValid = false;
+        }else{
+            document.getElementById(`engine-or-storage-provider-${formId}-error`).style.display = "none";
+        }
     }
 
 
@@ -665,18 +719,25 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
 
     // Validate form input
     if (validateInput(engineOrStorageProvider, formId)){
-        btnSaveEl.innerHTML = savingData;
 
-        const credentialType = document.querySelector(`#type-${formId}`).value;
-        const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
+        btnSaveEl.innerHTML = savingData;
+        const errorContainerEl = document.querySelector(`#error-container-${formId}`);
+        const errorEl = document.querySelector(`#error-p-${formId}`);
+        errorContainerEl.style.display = "none";
         let engineOrStorageProviderData = {}
 
 
-        // Format url
+        
         let url = `/credentials/${credentialId}`;
+        let data = {};
+
         if (methodType === "POST"){
 
             url = "/credentials";
+
+
+            const credentialType = document.querySelector(`#type-${formId}`).value;
+            const engineOrStorageProvider = document.querySelector(`#engine-or-storage-provider-${formId}`).value;
             
             if (credentialType === "database_engines"){
 
@@ -696,16 +757,26 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
 
             }
 
+            // format data
+            data = {
+
+                _id: credentialData.credential_id,
+                type: credentialType,
+                engine_or_storage_provider: engineOrStorageProviderData,
+                credential: credentialData
+            };
+
+
+        }else {
+
+            // format data
+            data = {
+                credential: credentialData
+            };
         }
 
 
-        const data = {
 
-            _id: credentialData.credential_id,
-            type: credentialType,
-            engine_or_storage_provider: engineOrStorageProviderData,
-            credential: credentialData
-        };
 
 
         // Save data
@@ -730,6 +801,8 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
             }else{
 
                 // error prompt here
+                errorEl.innerHTML = jsonData.message
+                errorContainerEl.style.display = "block";
                 btnSaveEl.innerHTML = "Save Changes";
             }
 
@@ -737,6 +810,8 @@ const saveCredential = (engineOrStorageProvider, methodType, credentialId, formI
             
             btnSaveEl.innerHTML = "Save Changes";
             console.log(err.message);
+            errorEl.innerHTML = err.message;
+            errorContainerEl.style.display = "block";
 
         });
 
@@ -789,6 +864,12 @@ const displaySavedCredential = (formId, credential, performReplace=false) => {
                         </div>
 
                     </form>
+
+
+                    <div id="error-container-${formId}" style="display: none; margin-top:20px;" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <p id="error-p-${formId}" ></p>
+                    </div>
+
                 </div>
 
             </div>
@@ -808,7 +889,24 @@ const displaySavedCredential = (formId, credential, performReplace=false) => {
     }
 
 
+
+
     loadFormFields(credential.engine_or_storage_provider._id, formId, credential.credential, true);
+
+
+
+
+    // Add listener to form
+    document.getElementById(`credential-form-${formId}`).addEventListener("submit", function(event){
+        event.preventDefault();
+        const engineOrStorageProvider = this.getAttribute("data-engine-or-storage-provider");
+        const methodType = this.getAttribute("data-method-type");
+        const credentialId = this.getAttribute("data-credential-id");
+        const formId = this.getAttribute("data-form-id");
+        
+        saveCredential(engineOrStorageProvider, methodType, credentialId, formId);
+    });
+
 
 
     // Add listener to delete button
@@ -829,6 +927,8 @@ const displaySavedCredential = (formId, credential, performReplace=false) => {
         deleteBtnEl.setAttribute("data-form-id", formId);
 
     });
+
+
 
 }
 
