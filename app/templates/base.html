@@ -113,7 +113,7 @@
       </li><!-- End Assets Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="#">
+        <a  class="nav-link {% if is_backup %}-{%else%}collapsed{%endif%}" href="{{url_for('backup.get_backups_overview')}}">
           <i class="bi bi-download"></i>
           <span>Back Up</span>
         </a>

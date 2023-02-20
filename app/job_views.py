@@ -1,9 +1,13 @@
 import os
 from flask import Blueprint
 from flask import render_template, request, jsonify, abort
+from utils_bkfplus import convert_hour_minute_to_timestamp, convert_24_hour_time_to_12_hour_time
 from  database import Database
 from bson.objectid import ObjectId
+from activity import log_activity
+import datetime
 job = Blueprint('job', __name__)
+
 
 
 # setup database connection
@@ -29,15 +33,15 @@ def job_add():
 def job_edit(job_id:str):
     return render_template("jobs-create-and-update.html", job_id= job_id, action_type= "Edit" , method = "PUT")
 
+@job.route('/backups')
+def get_backups_overview():
+    return render_template("job-backup-detail.html", is_backup=True)
 
-# {
-#     "_id": "default",
-#     "name": "Default",
-#     "storage_name": "Local Storage",
-#     "description": "",
-#     "type": "localhost",
-#     "image": "sp/localhost-storage.png"
-# },
+@job.route('/backups/<string:job_id>')
+def get_backup_overview(job_id:str):
+    return render_template("job-backup-detail.html", is_jobs=True, job_id=job_id)
+
+
 
 ###### API ######################
 
@@ -69,6 +73,15 @@ def jobs():
             body['database_engine'] = engine_res
             body['storage_provider'] = provider_res
 
+            # Get timestamp
+            time_split = body['job_start_time'].split(":")
+            hours = int(time_split[0])
+            minutes = int(time_split[0])
+            body['job_start_hours'] = hours
+            body['job_start_minutes'] = minutes
+            body['job_start_timestamp'] = convert_hour_minute_to_timestamp(hours, minutes)
+            body['job_start_time_12_hour_time'] = convert_24_hour_time_to_12_hour_time(body['job_start_time'])
+
 
             # Save data
             res = db.jobs.insert_one(body)
@@ -76,6 +89,17 @@ def jobs():
 
             # Retrieve data
             job = db.jobs.find_one({"_id": res.inserted_id})
+
+
+            # logs 
+            log_activity({
+                    "content": f"New job ({job['job_name']}) created",
+                    "log_type": "jobs",
+                    "reference_id": str(job['_id']),
+                    "log_datetime": datetime.datetime.utcnow()
+                    })
+
+
 
             return jsonify({
                 "success": True,
@@ -130,11 +154,31 @@ def job_details(job_id:str):
             body['database_engine'] = engine_res
             body['storage_provider'] = provider_res
 
+
+            # Get timestamp
+            time_split = body['job_start_time'].split(":")
+            hours = int(time_split[0])
+            minutes = int(time_split[0])
+            body['job_start_hours'] = hours
+            body['job_start_minutes'] = minutes
+            body['job_start_timestamp'] = convert_hour_minute_to_timestamp(hours, minutes)
+            body['job_start_time_12_hour_time'] = convert_24_hour_time_to_12_hour_time(body['job_start_time'])
+
+
             # Save data
             res = db.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": body})
 
             # Retrieve data
             job = db.jobs.find_one({"_id": ObjectId(job_id)})
+
+
+            # logs 
+            log_activity({
+                    "content": f"{job['job_name']} was updated",
+                    "log_type": "jobs",
+                    "reference_id": str(job['_id']),
+                    "log_datetime": datetime.datetime.utcnow()
+                    })
 
             return jsonify({
                 "success": True,
@@ -151,7 +195,14 @@ def job_details(job_id:str):
             if job:
                 # Delete document
                 db.jobs.delete_one({"_id": ObjectId(job_id)})
-
+                
+                # logs 
+                log_activity({
+                        "content": f"{job['job_name']} was deleted",
+                        "log_type": "jobs",
+                        "reference_id": str(job['_id']),
+                        "log_datetime": datetime.datetime.utcnow()
+                        })
             else:
                 status_code = 404
                 os.environ['error_msg'] = f"Job with id {job_id} does not exist."
