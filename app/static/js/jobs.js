@@ -248,7 +248,7 @@ const displayTableContent = (data) => {
     let content = "";
     let count = 1;
     for(let job of data){
-        content += formatUserData(job, count)
+        content += formatJobData(job, count)
         count += 1;
     }
 
@@ -262,13 +262,13 @@ const displayTableContent = (data) => {
 }
 
 
-const formatUserData = (job, count) => {
+const formatJobData = (job, count) => {
 
     return `
             <tr id="job-list-row-id-${job._id}" class="list-fade">
                 <td>${count}</td>
                 <td>${job.job_name}</td>
-                <td>${job.job_start_time}</td>
+                <td>${job.job_start_time_12_hour_time}</td>
                 <td>${job.interval_value} ${job.interval_type}</td>
                 <td>${job.database_engine.engine_or_storage_provider.name}</td>
                 <td>${job.storage_provider.engine_or_storage_provider.storage_name}</td>

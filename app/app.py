@@ -18,6 +18,7 @@ from prometheus_flask_exporter import PrometheusMetrics
 # https://stackoverflow.com/questions/6957396/url-building-with-flask-and-non-unique-handler-names/6958518
 from job_views import job
 from manage_credentials_views import mcredential
+from backup_views import backup
 
 
 from models import (
@@ -39,6 +40,7 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app = Flask(__name__)
 app.register_blueprint(job)
 app.register_blueprint(mcredential)
+app.register_blueprint(backup)
 
 
 

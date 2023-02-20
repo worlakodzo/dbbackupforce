@@ -1,11 +1,9 @@
 import os
 from flask import Blueprint
 from flask import render_template, request, jsonify, abort
-from utils_bkfplus import convert_hour_minute_to_timestamp, convert_24_hour_time_to_12_hour_time
 from  database import Database
 from bson.objectid import ObjectId
-job = Blueprint('job', __name__)
-
+backup = Blueprint('backup', __name__)
 
 
 # setup database connection
@@ -18,24 +16,11 @@ except Exception as err:
 
 
 
-@job.route('/job_list')
-def job_list():
-    return render_template("job-list.html", is_jobs=True)
-
-
-@job.route('/job_add')
-def job_add():
-    return render_template("jobs-create-and-update.html", action_type= "Add", method = "POST")
-
-@job.route('/job_edit/<string:job_id>')
-def job_edit(job_id:str):
-    return render_template("jobs-create-and-update.html", job_id= job_id, action_type= "Edit" , method = "PUT")
-
-@job.route('/backups')
+@backup.route('/backups')
 def get_backups_overview():
     return render_template("job-backup-detail.html", is_backup=True)
 
-@job.route('/backups/<string:job_id>')
+@backup.route('/backups/<string:job_id>')
 def get_backup_overview(job_id:str):
     return render_template("job-backup-detail.html", is_jobs=True, job_id=job_id)
 
@@ -43,7 +28,7 @@ def get_backup_overview(job_id:str):
 
 ###### API ######################
 
-@job.route('/jobs', methods = ["GET", "POST"])
+@backup.route('/jobs', methods = ["GET", "POST"])
 def jobs():
     status_code = 500
     try:
@@ -71,15 +56,6 @@ def jobs():
             body['database_engine'] = engine_res
             body['storage_provider'] = provider_res
 
-            # Get timestamp
-            time_split = body['job_start_time'].split(":")
-            hours = int(time_split[0])
-            minutes = int(time_split[0])
-            body['job_start_hours'] = hours
-            body['job_start_minutes'] = minutes
-            body['job_start_timestamp'] = convert_hour_minute_to_timestamp(hours, minutes)
-            body['job_start_time_12_hour_time'] = convert_24_hour_time_to_12_hour_time(body['job_start_time'])
-
 
             # Save data
             res = db.jobs.insert_one(body)
@@ -104,7 +80,7 @@ def jobs():
 
 
 
-@job.route('/jobs/<string:job_id>', methods = ["GET", "POST", "PUT", "DELETE"])
+@backup.route('/jobs/<string:job_id>', methods = ["GET", "POST", "PUT", "DELETE"])
 def job_details(job_id:str):
     status_code = 500
     try:
@@ -140,17 +116,6 @@ def job_details(job_id:str):
 
             body['database_engine'] = engine_res
             body['storage_provider'] = provider_res
-
-
-            # Get timestamp
-            time_split = body['job_start_time'].split(":")
-            hours = int(time_split[0])
-            minutes = int(time_split[0])
-            body['job_start_hours'] = hours
-            body['job_start_minutes'] = minutes
-            body['job_start_timestamp'] = convert_hour_minute_to_timestamp(hours, minutes)
-            body['job_start_time_12_hour_time'] = convert_24_hour_time_to_12_hour_time(body['job_start_time'])
-
 
             # Save data
             res = db.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": body})
@@ -209,7 +174,7 @@ def format_read_job_data(data):
 
 
 
-@job.route('/jobbasicinfo')
+@backup.route('/jobbasicinfo')
 def job_basic_info():
     status_code = 500
     try:
@@ -241,7 +206,7 @@ def job_basic_info():
 Error handle
 """
 
-@job.errorhandler(500)
+@backup.errorhandler(500)
 def internal_server_error(error):
     error_msg = os.environ.get("error_msg", "")
     return jsonify({
@@ -251,7 +216,7 @@ def internal_server_error(error):
     }), 500
 
 
-@job.errorhandler(405)
+@backup.errorhandler(405)
 def method_not_allowed(error):
     error_msg = os.environ.get("error_msg", "")
     return jsonify({
@@ -260,7 +225,7 @@ def method_not_allowed(error):
         "message": f"Method Not Allowed, {error_msg}"
     }), 405
 
-@job.errorhandler(404)
+@backup.errorhandler(404)
 def resource_not_found(error):
     error_msg = os.environ.get("error_msg", "")
     return jsonify({
@@ -269,12 +234,3 @@ def resource_not_found(error):
         "message": f"Resource Not Found, {error_msg}"
     }), 404
 
-
-# {
-#     "_id": "default",
-#     "name": "Default",
-#     "storage_name": "Local Storage",
-#     "description": "",
-#     "type": "localhost",
-#     "image": "sp/localhost-storage.png"
-# },
