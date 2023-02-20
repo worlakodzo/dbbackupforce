@@ -29,15 +29,15 @@ def job_add():
 def job_edit(job_id:str):
     return render_template("jobs-create-and-update.html", job_id= job_id, action_type= "Edit" , method = "PUT")
 
+@job.route('/backups')
+def get_backups_overview():
+    return render_template("job-backup-detail.html", is_backup=True)
 
-# {
-#     "_id": "default",
-#     "name": "Default",
-#     "storage_name": "Local Storage",
-#     "description": "",
-#     "type": "localhost",
-#     "image": "sp/localhost-storage.png"
-# },
+@job.route('/backups/<string:job_id>')
+def get_backup_overview(job_id:str):
+    return render_template("job-backup-detail.html", is_jobs=True, job_id=job_id)
+
+
 
 ###### API ######################
 
@@ -246,3 +246,13 @@ def resource_not_found(error):
         "error": 404,
         "message": f"Resource Not Found, {error_msg}"
     }), 404
+
+
+# {
+#     "_id": "default",
+#     "name": "Default",
+#     "storage_name": "Local Storage",
+#     "description": "",
+#     "type": "localhost",
+#     "image": "sp/localhost-storage.png"
+# },
