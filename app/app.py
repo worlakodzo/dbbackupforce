@@ -254,22 +254,29 @@ def login():
 @app.route("/", methods=["GET", "POST"])
 @login_required
 def dashboard():
+    from utils_bkfplus import datetime_to_timeline
+    user_count = len(list(db.users.find({})))
+    jobs_count = len(list(db.jobs.find({})))
 
-    user_count = 0
-    asset_count = 0
+    activity_logs_ = db.activity_logs.find({})
+    
+    activity_logs = []
+    for log in activity_logs_:
 
-    user_query = db.users.find({})
-    user_query = list(user_query)
+        # Create a datetime object representing a specific time
+        dt = log['log_datetime']
 
-    if user_query:
-        user_count = len(user_query)
-
+        # Convert the datetime object to a timeline string
+        timeline = datetime_to_timeline(dt)
+        log['timeline'] = timeline
+        activity_logs.append(log)
 
 
     return render_template(
         "index.html",
         user_count = user_count,
-        asset_count = asset_count,
+        jobs_count = jobs_count,
+        activity_logs = activity_logs,
         is_dashboard=True
         )
 
@@ -496,10 +503,8 @@ def update_user_setting(body, user_query):
 
 
 
+
 ################  END API ##########################################
-
-
-
 
 # Add a gauge metric for available disk space
 @app.route("/diskspace")

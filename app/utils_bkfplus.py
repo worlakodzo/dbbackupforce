@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 
 def convert_hour_minute_to_timestamp(hour, minute):
 
@@ -23,3 +24,30 @@ def get_backup_file_or_directory_name(database_name):
     timestamp=datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     file_name_or_directory = f"{database_name}_backup_{timestamp}"
     return file_name_or_directory
+
+
+
+
+
+
+def format_timedelta(td):
+
+    minutes = int(td.total_seconds() // 60)
+    if minutes < 60:
+        return f"{minutes} minutes ago"
+
+
+    hours = int(minutes // 60)
+    if hours < 24:
+        return f"{hours} hours ago"
+
+        
+    days = int(td.days)
+    return f"{days} days ago"
+
+
+
+def datetime_to_timeline(dt):
+    now = datetime.datetime.now()
+    td = now - dt
+    return format_timedelta(td)

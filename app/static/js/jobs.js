@@ -392,9 +392,6 @@ const saveJob = (methodType, jobId) => {
         }
 
 
-
-
-
         // Save data
         fetch (url, {
             method: methodType,
