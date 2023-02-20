@@ -4,8 +4,8 @@ import os
 unittest.defaultTestLoader.sortTestMethodsUsing = lambda *args: 1
 
 # Define the base URL of the app
-# base_url = "http://worlako.jumpingcrab.com:8086"
-base_url = "http://192.168.1.123:5000"
+base_url = "http://worlako.jumpingcrab.com:8086"
+# base_url = "http://192.168.1.123:5000"
 
 
 # BEGIN test case order
