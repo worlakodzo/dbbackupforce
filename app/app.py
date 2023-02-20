@@ -518,7 +518,7 @@ def metrics_api():
 Error handle
 """
 
-@mcredential.errorhandler(500)
+@app.errorhandler(500)
 def internal_server_error(error):
     error_msg = os.environ.get("error_msg", "")
     return jsonify({

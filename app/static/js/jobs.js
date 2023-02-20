@@ -413,7 +413,7 @@ const saveJob = (methodType, jobId) => {
 
                 btnSaveEl.innerHTML = "Save";
                 $.notify("Credential Saved.", "success");
-                window.location.href = "/job_list";
+                window.location.href = `/backup_list/<string:job_id>${jsonData.job._id}`;
 
             }else{
 

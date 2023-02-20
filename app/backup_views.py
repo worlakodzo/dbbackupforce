@@ -3,9 +3,17 @@ from flask import Blueprint
 from flask import render_template, request, jsonify, abort
 from  database import Database
 from bson.objectid import ObjectId
+import boto3
+import subprocess
+from utils_bkfplus import get_backup_file_or_directory_name
+import time
 backup = Blueprint('backup', __name__)
+from pathlib import Path
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# pip install boto3
 # setup database connection
 db, client = [None, None]
 try:
@@ -16,11 +24,11 @@ except Exception as err:
 
 
 
-@backup.route('/backups')
+@backup.route('/backup_list')
 def get_backups_overview():
     return render_template("job-backup-detail.html", is_backup=True)
 
-@backup.route('/backups/<string:job_id>')
+@backup.route('/backup_list/<string:job_id>')
 def get_backup_overview(job_id:str):
     return render_template("job-backup-detail.html", is_jobs=True, job_id=job_id)
 
@@ -28,19 +36,19 @@ def get_backup_overview(job_id:str):
 
 ###### API ######################
 
-@backup.route('/jobs', methods = ["GET", "POST"])
-def jobs():
+@backup.route('/backups', methods = ["GET", "POST"])
+def backups():
     status_code = 500
     try:
 
         if request.method == "GET":
 
             # Get jobs
-            jobs_query = db.jobs.find({})
+            backups_query = db.backup_histories.find({})
 
             return jsonify({
                 "success": True,
-                "jobs": [format_read_job_data(job) for job in jobs_query],
+                "backup_histories": [format_read_job_data(backup) for backup in backups_query],
             })
         
 
@@ -80,85 +88,25 @@ def jobs():
 
 
 
-@backup.route('/jobs/<string:job_id>', methods = ["GET", "POST", "PUT", "DELETE"])
-def job_details(job_id:str):
+@backup.route('/backups/<string:job_id>/histories')
+def backup_histories(job_id:str):
     status_code = 500
     try:
 
-        if request.method == "GET":
+        # Get backup history
+        backups_query = db.backup_histories.find({"job._id": ObjectId(job_id)})
 
-            # Get job
-            job = db.jobs.find_one({"_id": ObjectId(job_id)})
-
-            if job:
-                job = format_read_job_data(job)
-
-            else:
-                status_code = 404
-                os.environ['error_msg'] = f"Job with id {job_id} does not exist."
-                abort(404)
-
-            return jsonify({
-                "success": True,
-                "job": job
-            })
-
-
-
-        elif request.method == "PUT":
-
-            body = request.get_json()
-
-            # Retrieve data
-            engine_res = db.manage_credentials.find_one({"_id": body["database_credential_id"]}, {"credential": 0})
-            provider_res = db.manage_credentials.find_one({"_id": body["backup_storage_provider_credential_id"]}, {"credential": 0})
-
-
-            body['database_engine'] = engine_res
-            body['storage_provider'] = provider_res
-
-            # Save data
-            res = db.jobs.update_one({"_id": ObjectId(job_id)}, {"$set": body})
-
-            # Retrieve data
-            job = db.jobs.find_one({"_id": ObjectId(job_id)})
-
-            return jsonify({
-                "success": True,
-                "job": format_read_job_data(job)
-            })
-
-
-
-        elif request.method == "DELETE":
-
-            # Get job
-            job = db.jobs.find_one({"_id": ObjectId(job_id)})
-
-            if job:
-                # Delete document
-                db.jobs.delete_one({"_id": ObjectId(job_id)})
-
-            else:
-                status_code = 404
-                os.environ['error_msg'] = f"Job with id {job_id} does not exist."
-                abort(404)
-
-            return jsonify({
-                "success": True,
-                "job_id": job_id
-            })
-
-
-
-        else:
-            status_code = 400
-            abort(400)            
+        return jsonify({
+            "success": True,
+            "backup_histories": [format_read_job_data(backup) for backup in backups_query],
+        })
 
 
     except Exception as err:
         print(str(err))
         abort(status_code)
+
+
 
 
 
@@ -166,7 +114,12 @@ def format_read_job_data(data):
 
     try:
 
+        job = data["job"]
         data["_id"] = str(data["_id"])
+        job["_id"] = str(job["_id"])
+
+        data["job"] = job
+
         return data
     except Exception as err:
         print(err)
@@ -174,30 +127,36 @@ def format_read_job_data(data):
 
 
 
-@backup.route('/jobbasicinfo')
-def job_basic_info():
-    status_code = 500
-    try:
-
-        # Get manage credentials
-        credentials_query = db.manage_credentials.find({}, {"credential": 0} )
-        credentials = [data for data in credentials_query]
-
-        # Get duration interval
-        duration_intervals_query = db.job_duration_interval_types.find({})
-
-        return jsonify({
-            "success": True,
-            "credentials": credentials,
-            "duration_interval_types": list(duration_intervals_query)
-        })
-      
+def run_backup(script_name):
+    script_path = f"/path/to/{script_name}"
+    result = subprocess.run([script_path, "arg1", "arg2"], stdout=subprocess.PIPE, shell=True)
+    output = result.stdout.decode("utf-8")
+    return True
 
 
-    except Exception as err:
-        print(str(err))
-        abort(status_code)
 
+def upload_backup_to_aws_s3(
+    aws_access_key_id,
+    aws_secret_access_key,
+    bucket_name,
+    file_name,
+    file_path
+    ):
+
+    s3_key = file_name
+
+    # Create an S3 client
+    s3_client = boto3.client('s3',
+                            aws_access_key_id=aws_access_key_id,
+                            aws_secret_access_key=aws_secret_access_key)
+
+    # Upload the file to S3
+    s3_client.upload_file(file_path, bucket_name, s3_key)
+
+    log = f'{file_name} uploaded to {bucket_name} with key {s3_key}.'
+
+    print(log)
+    return True
 
 
 
