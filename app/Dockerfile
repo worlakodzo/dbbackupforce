@@ -1,4 +1,4 @@
-FROM python:3.8-alpine as build
+FROM python:3.8 as build
 RUN apk update && apk add build-base cmake
 
 WORKDIR /code
@@ -14,7 +14,7 @@ RUN rm -rf static
 
 
 # Production enviroment
-FROM python:3.8-alpine
+FROM python:3.8
 RUN mkdir -p /var/backupforceplus/conf/
 
 WORKDIR /code
