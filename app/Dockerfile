@@ -1,5 +1,5 @@
 FROM python:3.8 as build
-RUN apt update && apt install build-base cmake
+# RUN apt update && apt install build-base cmake
 
 WORKDIR /code
 
