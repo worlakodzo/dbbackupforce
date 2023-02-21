@@ -169,6 +169,8 @@ pipeline {
                    // Update application helm chart image tag
                    println('Update application helm chart image tag')
                    sh"""
+                        git clean -f
+                        
                         cd ${WORKSPACE}/portfolio-gitops/manifest/uasset
                         sed -i "s/tag:.*/tag: ${IMAGE_TAG}/g" values.yaml
 
