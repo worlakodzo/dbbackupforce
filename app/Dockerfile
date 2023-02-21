@@ -1,5 +1,5 @@
 FROM python:3.8 as build
-RUN apk update && apk add build-base cmake
+RUN apt update && apt install build-base cmake
 
 WORKDIR /code
 
@@ -13,9 +13,11 @@ COPY . /code/
 RUN rm -rf static
 
 
-# Production enviroment
+# Production enviroment 
 FROM python:3.8
 RUN mkdir -p /var/backupforceplus/conf/
+RUN mkdir -p /var/backupforceplus/backup/
+
 
 WORKDIR /code
 
