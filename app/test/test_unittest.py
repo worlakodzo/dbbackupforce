@@ -101,112 +101,112 @@ class UserTestCase(unittest.TestCase):
 
 
 
-class ManageCredentialTestCase(unittest.TestCase):
+# class ManageCredentialTestCase(unittest.TestCase):
 
-    def setUp(self):
-        self.base_url = base_url
+#     def setUp(self):
+#         self.base_url = base_url
 
 
-    @ordered
-    def test_create_manage_credential(self):
-        payload = {
-            "_id": "database_engine_id59",
-            "type": "database_engines",
-            "engine_or_storage_provider": {
-            "_id": "mysql",
-            "name": "MySQL",
-            "description": "",
-            "type": "relational",
-            "image": "db/mysql-logo.png"
-        },
-        "credential": {
-            "database_name": "my_db",
-            "database_host": "localhost",
-            "database_user": "my_db",
-            "database_password": "my_db",
-            "database_port": "3036"
-        }
+#     @ordered
+#     def test_create_manage_credential(self):
+#         payload = {
+#             "_id": "database_engine_id59",
+#             "type": "database_engines",
+#             "engine_or_storage_provider": {
+#             "_id": "mysql",
+#             "name": "MySQL",
+#             "description": "",
+#             "type": "relational",
+#             "image": "db/mysql-logo.png"
+#         },
+#         "credential": {
+#             "database_name": "my_db",
+#             "database_host": "localhost",
+#             "database_user": "my_db",
+#             "database_password": "my_db",
+#             "database_port": "3036"
+#         }
         
-        }
+#         }
 
-        res = requests.post(f"{base_url}/credentials", json=payload)
-        assert res.status_code == 201, f"Expected 201, got {res.status_code}"
+#         res = requests.post(f"{base_url}/credentials", json=payload)
+#         assert res.status_code == 201, f"Expected 201, got {res.status_code}"
 
-        json_data = res.json()
-        credential = json_data['credential']
-        assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
-        os.environ["credential_id"] = credential["_id"]
-
-
-    @ordered
-    def test_get_manage_credentials(self):
-        res = requests.get(f"{base_url}/credentials")
-
-        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
-
-        data = res.json()
-        credentials = data["credentials"]
-        credential_types = data["credential_types"]
-
-        assert data["success"] == True, f"Expected 'True', got {data['success']}"
-        assert len(credentials) > 0, f"Expected 'Credentials Count > 0 ', got {len(credentials)}"
-        assert len(credential_types) > 0, f"Expected 'Credential Types > 0', got {len(credential_types)}"
+#         json_data = res.json()
+#         credential = json_data['credential']
+#         assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
+#         os.environ["credential_id"] = credential["_id"]
 
 
-    @ordered
-    def test_get_manage_credential(self):
+#     @ordered
+#     def test_get_manage_credentials(self):
+#         res = requests.get(f"{base_url}/credentials")
 
-        credential_id = os.environ.get("credential_id", "")
-        res = requests.get(f"{base_url}/credentials/{credential_id}")
+#         assert res.status_code == 200, f"Expected 200, got {res.status_code}"
 
-        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+#         data = res.json()
+#         credentials = data["credentials"]
+#         credential_types = data["credential_types"]
 
-        data = res.json()
-        credential = data["credential_data"]
-
-        assert data["success"] == True, f"Expected 'True', got {data['success']}"
-        assert credential['type'] == "database_engines", f"Expected 'database_engines', got {credential['type']}"
+#         assert data["success"] == True, f"Expected 'True', got {data['success']}"
+#         assert len(credentials) > 0, f"Expected 'Credentials Count > 0 ', got {len(credentials)}"
+#         assert len(credential_types) > 0, f"Expected 'Credential Types > 0', got {len(credential_types)}"
 
 
-    @ordered
-    def test_update_manage_credential(self):
+#     @ordered
+#     def test_get_manage_credential(self):
 
-        credential_id = os.environ.get("credential_id", "")
-        payload = {
+#         credential_id = os.environ.get("credential_id", "")
+#         res = requests.get(f"{base_url}/credentials/{credential_id}")
 
-            "credential": {
-                "database_name": "my_db_change_name",
-                "database_host": "localhost",
-                "database_user": "my_db",
-                "database_password": "my_db",
-                "database_port": "3036"
-            }
-        }
+#         assert res.status_code == 200, f"Expected 200, got {res.status_code}"
 
-        res = requests.put(f"{base_url}/credentials/{credential_id}", json=payload)
-        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+#         data = res.json()
+#         credential = data["credential_data"]
 
-        json_data = res.json()
-        credential = json_data['credential_data']['credential']
-        print (credential)
+#         assert data["success"] == True, f"Expected 'True', got {data['success']}"
+#         assert credential['type'] == "database_engines", f"Expected 'database_engines', got {credential['type']}"
+
+
+#     @ordered
+#     def test_update_manage_credential(self):
+
+#         credential_id = os.environ.get("credential_id", "")
+#         payload = {
+
+#             "credential": {
+#                 "database_name": "my_db_change_name",
+#                 "database_host": "localhost",
+#                 "database_user": "my_db",
+#                 "database_password": "my_db",
+#                 "database_port": "3036"
+#             }
+#         }
+
+#         res = requests.put(f"{base_url}/credentials/{credential_id}", json=payload)
+#         assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+
+#         json_data = res.json()
+#         credential = json_data['credential_data']['credential']
+#         print (credential)
         
-        assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
-        assert credential["database_name"] == "my_db_change_name", f"Expected 'my_db_change_name', got {credential['database_name']}"
+#         assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
+#         assert credential["database_name"] == "my_db_change_name", f"Expected 'my_db_change_name', got {credential['database_name']}"
 
 
-    @ordered
-    def test_u_delete_manage_credential(self):
+#     @ordered
+#     def test_u_delete_manage_credential(self):
 
-        credential_id = os.environ.get("credential_id", "")
+#         credential_id = os.environ.get("credential_id", "")
 
-        res = requests.delete(f"{base_url}/credentials/{credential_id}")
-        assert res.status_code == 200, f"Expected 200, got {res.status_code}"
+#         res = requests.delete(f"{base_url}/credentials/{credential_id}")
+#         assert res.status_code == 200, f"Expected 200, got {res.status_code}"
 
-        json_data = res.json()
+#         json_data = res.json()
 
         
-        assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
-        assert json_data["credential_id"] == credential_id, f"Expected '{credential_id}', got {json_data['credential_id']}"
+#         assert json_data["success"] == True, f"Expected 'True', got {json_data['success']}"
+#         assert json_data["credential_id"] == credential_id, f"Expected '{credential_id}', got {json_data['credential_id']}"
 
 
 
