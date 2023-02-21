@@ -1,5 +1,5 @@
 FROM python:3.8-alpine as build
-RUN apk update && apk add build-base
+RUN apk update && apk add build-base cmake
 
 WORKDIR /code
 
